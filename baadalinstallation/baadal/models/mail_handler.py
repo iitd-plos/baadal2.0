@@ -292,11 +292,10 @@ def send_shutdown_email_to_all():
     #iterating on all unique email_ids to send email
     for email_id in user_email_ids:
         context = dict(userName = user_name[email_id], userVMs = user_vms[email_id])
-
-    	logger.info("Sending mail to: " + email_id)
+        logger.info("Sending mail to: " + email_id)
         logger.info("User VMs: " + user_vms[email_id])
         send_email(email_id, BAADAL_SHUTDOWN_SUBJECT, BAADAL_SHUTDOWN_BODY, context)
        
         import time
-  	    time.sleep(30)
+        time.sleep(30)
  
