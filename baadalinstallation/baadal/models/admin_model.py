@@ -10,6 +10,7 @@ if 0:
     from gluon import db, request, session
     from applications.baadal.models import *  # @UnusedWildImport
 ###################################################################################
+from container_create import listallcontainerswithnodes
 from dhcp_helper import create_dhcp_entry, remove_dhcp_entry, \
     create_dhcp_bulk_entry
 from helper import IS_MAC_ADDRESS, get_ips_in_range, generate_random_mac
@@ -1204,3 +1205,10 @@ def zoom_info(g_type):
             root_info['name']="HOST DETAILS :" + str(all_host_info) + " :: UTILIZATION  MEM: " + str(round(avg_ram,2)) + "% CPU: " + str(round(avg_cpu,2)) +"%"
     root_info['children']=parent_util
     return root_info
+
+
+def get_node_container_list():
+    
+    
+    return listallcontainerswithnodes()
+    

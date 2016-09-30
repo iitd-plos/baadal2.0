@@ -1,4 +1,4 @@
-from cont_handler import Container
+from cont_handler import Container ,addip
 from gluon import current
 from helper import get_context_path, get_docker_daemon_address, \
     get_nginx_server_address, log_exception , config
@@ -13,12 +13,14 @@ cert_path = os.path.join(get_context_path(), 'modules/certs/')
 tls_config = docker.tls.TLSConfig(client_cert=(cert_path+'cert.pem', cert_path+'key.pem'),verify=cert_path+'ca.pem')
 
 docker_machine = get_docker_daemon_address();
+#client = docker.Client(base_url='https://:10.237.20.236:3376',version='auto', tls=tls_config)
 client = docker.Client(base_url='https://'+docker_machine[0]+':'+docker_machine[1],version='auto', tls=tls_config)
 Container.setclient(client);
 
 
 def proxieddomain (name) :
-    alias = '.baadalgateway.cse.iitd.ac.in'
+    #alias = '.baadalgateway.cse.iitd.ac.in'
+    alias ='.docker.iitd.ac.in'
     address = name +alias;
     return address[1:];         # required name contains '/' at start
 
@@ -36,7 +38,7 @@ def install_cont(parameters):
         ret = install_container(
                                 cont_details.name,
                                 cont_details.image_id,
-                                mount_hostvolumes,
+                                
                                 cont_details.env_vars,
                                 cont_details.vCPU,
                                 memory,
@@ -139,7 +141,7 @@ def recreate_cont(parameters):
         ret = install_container(
                                 cont_details.name,
                                 cont_details.image_id,
-                                mount_hostvolumes,
+                                
                                 cont_details.env_vars,
                                 cont_details.vCPU,
                                 memory,
@@ -167,74 +169,56 @@ def restart_cont(parameters):
         logger.debug("Task Status: FAILED Error: %s " % log_exception())
         return (current.TASK_QUEUE_STATUS_FAILED, log_exception())
 
+def scale(name,uuid,templateid,env,cpushare,memory,scaleconstant):
+    uuids=[uuid];
+    
+    imageprofile = getImageProfile(templateid)
+    for num in range(1,scaleconstant):
+        uuid=install_container(name+'-ins'+str(num),templateid,env,cpushare,memory,False,False);
+        uuids.append(uuid);
+    port = imageprofile['port'];
+    if( port) :    
+        addip(name,uuids);
 
-def install_container(name,templateid,mount_hostvolumes,env,cpushare,memory,portmap=True):
+def install_container(name,templateid,env,cpushare,memory,portmap=False,setnginx=True):
     imageprofile = getImageProfile(templateid)
     nodes = get_node_to_deploy();
     nodeindex = get_node_pack(nodes,memory,1);
+    port = imageprofile['port'];
+    if (port):
+        portmap = True; 
     if(not env):
-		env = {'constraint:node=':nodes[nodeindex]['Name']};
+        env = {'constraint:node=':nodes[nodeindex]['Name']};
     else:
-		env['constraint:node='] =nodes[nodeindex]['Name'];
+        env['constraint:node='] =nodes[nodeindex]['Name'];
+    env['TERM'] = 'xterm';
     if(imageprofile['updatemysql'] ):
-		extrahosts = {'mysql':config.get("DOCKER_CONF","mysql_machine")}
+        extrahosts = {'mysql':config.get("DOCKER_CONF","mysql_machine")}
     else :
-               extrahosts = None;
-    if  (imageprofile['mountdestdir']):
-        bindconfig1 ={}
-        bindconfig1['bind'] = imageprofile['mountdestdir'];
-        bindconfig1['mode'] ='rw' ;
-        binds = {}
-        binds[mount_hostvolumes] = bindconfig1;
-        
-        hostconfig = client.create_host_config(binds = binds,publish_all_ports = portmap,mem_limit = memory,links  = imageprofile['links'],cap_drop=imageprofile['permissiondrop'],cap_add=imageprofile['permissionadd'],extra_hosts=extrahosts);
-        print(hostconfig);
-        try: 
-            containerid = client.create_container(name=name ,image = imageprofile['Id'] , command = imageprofile['cmd'] ,
-                                 volumes = [imageprofile['mountdestdir']] , environment = env , detach = True ,cpu_shares=cpushare,
-                                 host_config = hostconfig );
-            print (containerid );
-        except docker.errors as e:
-            print (e);
-    else :
-        hostconfig = client.create_host_config(publish_all_ports = portmap,mem_limit = memory,cap_drop=imageprofile['permissiondrop'],cap_add=imageprofile['permissionadd'],links  = imageprofile['links'],extra_hosts=extrahosts);
-        try: 
-            containerid = client.create_container(name=name,image = imageprofile['Id'] , command = imageprofile['cmd'],
-                                  environment = env , detach = True ,cpu_shares=cpushare,
-                                 host_config = hostconfig );
-            print (containerid );
-        except docker.errors as e:
-            print (e);        
+        extrahosts = None;
+    hostconfig = client.create_host_config(publish_all_ports = portmap,mem_limit = memory,cap_drop=imageprofile['permissiondrop'],cap_add=imageprofile['permissionadd'],links  = imageprofile['links'],extra_hosts=extrahosts);
+    try: 
+        containerid = client.create_container(name=name,image = imageprofile['Id'] , command = imageprofile['cmd'],
+                              environment = env , detach = True ,cpu_shares=cpushare,
+                             host_config = hostconfig );
+    except docker.errors as e:
+        print (e); 
+        return;       
     # Update the db -- container in created state.....
-    print ('db update');
     try:                     
-        response = client.start(container = containerid['Id']);
-        print (response) ;
+        response = client.start(container = containerid['Id']);  # @UnusedVariable
         # Update the db -- container in running state
     except docker.errors as e:
         print(e);
-    
-    port = imageprofile['port'];
-    if( port) :
-          container = Container(containerid);    
-          container.addipbyconf();    
+    if( port and setnginx) :
+        container = Container(containerid);    
+        container.addipbyconf();    
     return containerid;
 
 def get_random_string(length=8,allowed_chars='abcdefghijklmnopqrstuvwxyz'):
     return ''.join(random.choice(allowed_chars) for i in range(length))        # @UnusedVariable
 
-def list_allcontainers():
-    containerlist = client.containers();
-    keystodisplay = ["Image","Created","Names" , "Id", "State" , "Command" ,"Status"]
-    newlist = [];
-    for x in containerlist:
-        containerex = x;
-        containerlimited  = {};
-        for key,value in containerex.items():
-            if ( key in keystodisplay):
-                containerlimited[key] = value;
-        newlist.append(containerlimited);            
-    return newlist;
+
     
 def garbage_collector():
     
@@ -297,102 +281,111 @@ def garbage_collector():
     print('not implemented')
     
 def get_node_to_deploy():
-	templist = client.info();
-	
-	
-	nodes=[{},{}];
-	nodenumber =-1;
-	for x in templist['SystemStatus'] :
-		tear=x[0].split(' ');
-		tocheck=tear[len(tear)-1];
-		
-		if (len(tear)>1):
-			if (len(tear) == 2):
-				nodenumber +=1;
-				
-				nodes[nodenumber] = {'Name':tear[1],'IP':x[1]}
-				continue;
-			if tocheck =='Status' :
-				nodes[nodenumber]['Status'] = x[1];
-			elif tocheck =='ID':
-				nodes[nodenumber]['Id'] = x[1];
-			elif tocheck =='Containers':
-				nodes[nodenumber]['Containers'] = x[1];
-			elif tocheck =='CPUs':
-				nodes[nodenumber]['Reserved CPUs'] = x[1];
-			elif tocheck =='Memory':
-				nodes[nodenumber]['Reserved Memory'] = x[1];
-			elif tocheck =='Labels':
-				tempar = x[1].split(", ");
-				nodes[nodenumber]['Labels'] ={}
-				for item in tempar:
-					splitar = item.split("=");
-					nodes[nodenumber]['Labels'][splitar[0]]=splitar[1];
-			elif tocheck =='ServerVersion':
-				nodes[nodenumber]['ServerVersion'] = x[1];
-			elif tocheck =='UpdatedAt':
-				nodes[nodenumber]['UpdatedAt'] = x[1];
-			else :
-				continue;
-				#nodenumber +=1;
-	return nodes;
+    templist = client.info();
+    
+    
+    nodes=[];
+    nodenumber =-1;
+    for x in templist['SystemStatus'] :
+        tear=x[0].split(' ');
+        tocheck=tear[len(tear)-1];
+        
+        if (len(tear)>1):
+            if (len(tear) == 2):
+                nodenumber +=1;
+                
+                nodes.append({'Name':tear[1],'IP':x[1]});
+                continue;
+            if tocheck =='Status' :
+                nodes[nodenumber]['Status'] = x[1];
+            elif tocheck =='ID':
+                nodes[nodenumber]['Id'] = x[1];
+            elif tocheck =='Containers':
+                nodes[nodenumber]['Containers'] = x[1];
+            elif tocheck =='CPUs':
+                nodes[nodenumber]['Reserved CPUs'] = x[1];
+            elif tocheck =='Memory':
+                nodes[nodenumber]['Reserved Memory'] = x[1];
+            elif tocheck =='Labels':
+                tempar = x[1].split(", ");
+                nodes[nodenumber]['Labels'] ={}
+                for item in tempar:
+                    splitar = item.split("=");
+                    nodes[nodenumber]['Labels'][splitar[0]]=splitar[1];
+            elif tocheck =='ServerVersion':
+                nodes[nodenumber]['ServerVersion'] = x[1];
+            elif tocheck =='UpdatedAt':
+                nodes[nodenumber]['UpdatedAt'] = x[1];
+            else :
+                continue;
+                #nodenumber +=1;
+    return nodes;
 
 def get_node_pack(nodes,memory,strategy=1):
-	minimummem=1000;
-	minimumnode=0;
-	for idx ,node in enumerate(nodes):
-	  memarray = node['Reserved Memory'].split(" / ");
-	  tmparray = memarray[0].split(" ");
-	  if (tmparray[1]=='GiB'):
-		  used = float(tmparray[0])*1024;
-	  else :
-		  used = float(tmparray[0])
-	 
-	  tmparray = memarray[1].split(" ");
-	  
-	  if (tmparray[1]=='GiB'):
-		  total = float(tmparray[0])*1024;
-	  else :
-		  total = float(tmparray[0])
-	  
-	  if (used < total and strategy ==1 ):
-		  return idx;
-	  else :
-		  if (used / total < minimummem):
-			  
-			  minimummem = used /total;
-			  minimumnode= idx;
-		  else:
-			  continue;
-	return minimumnode;
-	   
-def migrate_container(containerid,message,author,changes,tag,repository):
-    container = Container(containerid);
-    response = container.save_template(message,author,changes,tag,repository);
-    print(response);
-    
-def list_container(cont_id):
+# strategy at 1 represents binpack strategy
+    minimummem=1000;
+    minimumnode=0;
+    for idx ,node in enumerate(nodes):
+        memarray = node['Reserved Memory'].split(" / ");
+        tmparray = memarray[0].split(" ");
+        if (tmparray[1]=='GiB'):
+            used = float(tmparray[0])*1024;
+        else :
+            used = float(tmparray[0])
+     
+        tmparray = memarray[1].split(" ");
+      
+        if (tmparray[1]=='GiB'):
+            total = float(tmparray[0])*1024;
+        else :
+            total = float(tmparray[0])
+      
+        if (used + float(memory[:-1]) < total and strategy ==1 ):
+            return idx;
+        else :
+            if (used / total < minimummem):
+              
+                minimummem = used /total;
+                minimumnode= idx;
+            else:
+                continue;
+    return minimumnode;
 
-    containerlist = client.containers();
-    keystodisplay = ["Image","Created","Names" , "Id", "State" , "Command" ,"Status", "Ports"]
+def listallcontainerswithnodes():
+    
+    lista=list_container( showall=True);
+    nodes=get_node_to_deploy();
+#     logger.debug(lista)
+#     logger.debug(nodes)
+    for x in lista:
+        hostcontainer = x['Names'][0].split("/")[1];
+        for y in nodes:
+            if(y['Name'] == hostcontainer):
+                if(y.get('Containerlist')):
+                    y['Containerlist'].append(x);
+                    break;
+                else:
+                    y['Containerlist']=[];
+                    y['Containerlist'].append(x);
+                    break;
+    return nodes;
+       
+
+    
+def list_container(showall):
+
+    containerlist = client.containers(all=showall);
+    keystodisplay = ["Image","Created","Names" , "Id", "State" , "Command" ,"Status","Ports"]
+    newlist = [];
     for x in containerlist:
-        if x['Id'] == cont_id:
-            containerex = x;
-            containerlimited  = {};
-            for key,value in containerex.items():
-                if ( key in keystodisplay):
-                    containerlimited[key] = value;
-            return containerlimited
-    return None
+        containerex = x;
+        containerlimited  = {};
+        for key,value in containerex.items():
+            if ( key in keystodisplay):
+                containerlimited[key] = value;
+        newlist.append(containerlimited);            
+    return newlist;
+
 
     
-    #~ ### Test commands 
-#~ print(list_allcontainers());    
-#~ name = get_random_string()
-#~ varlist = container_create(name,4,'/root/user/cs1140221/pythonap-app',{'APP' : 'test.py' ,'WORDPRESS_DB_NAME' : name , 'WORDPRESS_DB_PASSWORD' : 'my-secret-pw'},512,"1G",True);                      
-#~ containerid = varlist['Id'];
-#~ container = Container(containerid);
-#~ garbage_collector();
-#~ migrate_container(containerid,'new meassage' , 'harsh' ,{},'1.0','ploki');
-
-#container.remove();
+ 

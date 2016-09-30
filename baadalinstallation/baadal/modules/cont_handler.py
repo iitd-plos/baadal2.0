@@ -1,16 +1,15 @@
-from helper import get_context_path, get_docker_daemon_address, \
-    get_nginx_server_address
-from log_handler import logger
-from proxy_handler import manageproxy
-import docker
 import dockerpty
+import docker
 import os
-import remote_vm_task as remote_machine
-import traceback
 
+from proxy_handler import manageproxy
+
+import remote_vm_task as remote_machine
+from log_handler import logger
+from helper import get_context_path , get_docker_daemon_address , get_nginx_server_address
 
 def proxieddomain (name) :
-    alias = '.baadalgateway.cse.iitd.ac.in'
+    alias = '.docker.iitd.ac.in'
     address = name +alias;
     return address[1:];         # required name contains '/' at start
     
@@ -146,8 +145,7 @@ class Container:
                 for key in portdict:
                     if(portdict[key]):
                         self.properties['ConnectionPath'] = portdict[key][0]["HostIp"] + ":" + portdict[key][0]["HostPort"]
-            if (not self.properties.get('ConnectionPath')):
-					self.properties['ConnectionPath'] = '10.17.50.26:5556'     
+            
         except Exception as e:
             print(e);
             #traceback.print_exc()
@@ -204,25 +202,7 @@ class Container:
         output = remote_machine.execute_remote_cmd(nginx_server[0],nginx_server[1],cmd,nginx_server[2])
         print(output)
             
-    def deleteipconf(self):    
-        name = self.properties['Name'];
-        domainname = proxieddomain(name);
-        filepath = "/etc/nginx/conf.d/default.conf";
-        testpath = "./test/test.conf" 
-        nginx_server = get_nginx_server_address()
-        cmd ="cat " + filepath;
-        out1=remote_machine.execute_remote_cmd(nginx_server[0],nginx_server[1],cmd,nginx_server[2])
-        reverser = manageproxy(out1);
-        reverser.removebyip(domainname);
-        
-        reverser.filedit = reverser.filedit.replace('$' ,'\$');
-        cmd = 'echo -e "' + reverser.filedit  + '" > '+ filepath;
-        out2 = remote_machine.execute_remote_cmd(nginx_server[0],nginx_server[1],cmd,nginx_server[2])
-        
-       
-        cmd = '/etc/init.d/nginx reload';
-        output =remote_machine.execute_remote_cmd(nginx_server[0],nginx_server[1],cmd,nginx_server[2])
-        print(output)
+    
         
     def addipbyconf(self,updatetc=False):
         ipaddress = self.properties['IPAddress'];
@@ -230,11 +210,13 @@ class Container:
         name = self.properties['Name'];
         domainname = proxieddomain(name);
         nginx_server = get_nginx_server_address()
-        fulladdress = self.properties['ConnectionPath'];
+        fulladdress = self.properties.get('ConnectionPath');
+        if (not fulladdress):
+            return;
         logger.debug(fulladdress);
         filepath = "/etc/nginx/conf.d/" + self.properties['Name'] +".conf";
         reverser = manageproxy('');
-        reverser.add(reverser.render({'x' : domainname , 'y' : fulladdress}),fulladdress);
+        reverser.add(reverser.render({'x' : domainname , 'y' : fulladdress}));
         print(reverser.filedit);
         reverser.filedit = reverser.filedit.replace('$' ,'\$');
         cmd = 'echo -e "' + reverser.filedit  + '" > '+ filepath;
@@ -243,44 +225,15 @@ class Container:
         cmd = '/etc/init.d/nginx reload';
         output = remote_machine.execute_remote_cmd(nginx_server[0],nginx_server[1],cmd,nginx_server[2])
         print(output)
-        if(updatetc):
-            hostadd = self.properties['ConnectionPath'].split(':')[0] + ' '  + domainname ; 
-            cmd ='echo " ' + hostadd + ' " >> /etc/hosts'; 
-            logger.debug('Command=> '+cmd)
-            logger.debug('Host IP=> ' +hostadd)
-            output = remote_machine.execute_remote_cmd(nginx_server[0],nginx_server[1],cmd,nginx_server[2])
-            logger.debug(output)
+        #~ if(updatetc):
+            #~ hostadd = self.properties['ConnectionPath'].split(':')[0] + ' '  + domainname ; 
+            #~ cmd ='echo " ' + hostadd + ' " >> /etc/hosts'; 
+            #~ logger.debug('Command=> '+cmd)
+            #~ logger.debug('Host IP=> ' +hostadd)
+            #~ output = remote_machine.execute_remote_cmd(nginx_server[0],nginx_server[1],cmd,nginx_server[2])
+            #~ logger.debug(output)
             
-    def addipconf(self,updatetc=False):
-        ipaddress = self.properties['IPAddress'];
-        
-        name = self.properties['Name'];
-        domainname = proxieddomain(name);
-        
-        fulladdress = self.properties['ConnectionPath'];
-        filepath = "/etc/nginx/conf.d/default.conf";
-        testpath = "./test/test.conf" 
-        nginx_server = get_nginx_server_address()
-        cmd ="cat " + filepath;
-        out1=remote_machine.execute_remote_cmd(nginx_server[0],nginx_server[1],cmd,nginx_server[2])
-        print(out1);
-        reverser = manageproxy(out1);
-        
-        reverser.add(reverser.render({'x' : domainname , 'y' : fulladdress}),fulladdress);
-        
-        
-        reverser.filedit = reverser.filedit.replace('$' ,'\$');
-        cmd = 'echo -e "' + reverser.filedit  + '" > '+ filepath;
-        out2 = remote_machine.execute_remote_cmd(nginx_server[0],nginx_server[1],cmd,nginx_server[2])
-        
-        cmd = '/etc/init.d/nginx reload';
-        output = remote_machine.execute_remote_cmd(nginx_server[0],nginx_server[1],cmd,nginx_server[2])
-        
-        if(updatetc):
-            hostadd = self.properties['ConnectionPath'].split(':')[0] + ' '  + domainname ; 
-            cmd ='echo " ' + hostadd + ' " >> /etc/hosts'; 
-            output = remote_machine.execute_remote_cmd(nginx_server[0],nginx_server[1],cmd,nginx_server[2])
-            
+    
                 
     def execstream(self,cmd='bash',stdout=None,stdin=None,stderr=None):
         self.removeoldexecid();
@@ -292,5 +245,22 @@ class Container:
     @classmethod                         
     def setclient(cls,cli):
         cls.client = cli;
+
+
+def addip(name,uuids):
+    filepath = "/etc/nginx/conf.d/" + name +".conf";
+    addresses=[];
+    nginx_server = get_nginx_server_address()
+    for uuid in uuids:
+        container = Container(uuid);
+        addresses.append(container.properties.get('ConnectionPath'));	
+    reverser = manageproxy('');
+    domainname = proxieddomain("/"+name);
+    reverser.addmultiple(domainname,addresses);
+    reverser.filedit = reverser.filedit.replace('$' ,'\$');
+    cmd = 'echo -e "' + reverser.filedit  + '" > '+ filepath;
+    out2 = remote_machine.execute_remote_cmd(nginx_server[0],nginx_server[1],cmd,nginx_server[2])
+    cmd = '/etc/init.d/nginx reload';
+    output = remote_machine.execute_remote_cmd(nginx_server[0],nginx_server[1],cmd,nginx_server[2])
             
 #some functions raise docker.errors.APIError take them in try catch block.....

@@ -15,8 +15,8 @@ imageprofiles = [
     'updatemysql':False
 },
 {
-    'Id' : '10.237.20.236:5000/djangopythonweb' ,
-    'cmd' : [],
+    'Id' : '10.237.20.236:5000/djangogit' ,
+    'cmd' : 'bash -c "tail -f /dev/null"',
     #'cmd' : 'bash',
     #'mountdestdir' : '/usr/src/app',
     'mountdestdir':None,
@@ -29,8 +29,8 @@ imageprofiles = [
      'updatemysql':False
 },
 {
-    'Id' : '10.237.20.236:5000/apachephusion' ,
-    'cmd' : [],
+    'Id' : '10.237.20.236:5000/apachegit' ,
+    'cmd' : 'bash -c "tail -f /dev/null"',
     #'cmd' : 'bash',
     #'mountdestdir' : '/var/www/app',
     'mountdestdir':None,
@@ -69,7 +69,7 @@ imageprofiles = [
      'updatemysql':False
 },
 {
-    'Id' : '10.237.20.236:5000/apachemysql' ,
+    'Id' : '10.237.20.236:5000/apachephpmysqlgit' ,
     'cmd' : 'bash -c "tail -f /dev/null"',
     #'cmd' : 'bash',
     #'mountdestdir' : '/var/www/app',
@@ -81,6 +81,20 @@ imageprofiles = [
     'permissionadd' : [],
          'links' : [],
      'updatemysql':True
+},
+{
+    'Id' : '10.237.20.236:5000/gcc' ,
+    'cmd' : 'bash -c "tail -f /dev/null"',
+    #'cmd' : 'bash',
+    #'mountdestdir' : '/var/www/app',
+     'mountdestdir' : None,
+    'restartpolicy' : 2    ,
+    'port' : None,
+    'type' : 'gcc',
+    'permissiondrop' : ["SETFCAP","SETPCAP","SYS_CHROOT"],
+    'permissionadd' : [],
+         'links' : [],
+     'updatemysql':False
 }
 ]
 
@@ -89,3 +103,12 @@ def getImageProfile(templateid):
 
 def getImageProfileList():
     return imageprofiles;
+
+def getImage(imageId):
+    print(imageId)
+    for i,imageprofile in enumerate(imageprofiles):
+        if imageprofile['Id'] == imageId:
+            imageprofile['templateid'] = i+1
+            return imageprofile
+    
+    return {'templateid':1,'type':'Unknown'}

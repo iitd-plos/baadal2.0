@@ -12,16 +12,14 @@ if 0:
     global auth; auth = gluon.tools.Auth()
     from applications.baadal.models import *  # @UnusedWildImport
 ###################################################################################
-from auth_user import fetch_ldap_user, create_or_update_user, AUTH_TYPE_LDAP
+from auth_user import fetch_ldap_user, create_or_update_user, AUTH_TYPE_DB
 from cont_handler import Container
-from container_create import list_container
 from datetime import timedelta
 from helper import log_exception, get_datetime, get_file_append_mode, config, \
     execute_remote_cmd, sftp_files, get_context_path
 from images import getImageProfileList
 from log_handler import logger
 from nat_mapper import VNC_ACCESS_STATUS_ACTIVE, VNC_ACCESS_STATUS_INACTIVE
-import datetime
 import os
 
 def get_my_requests():
@@ -420,7 +418,7 @@ def get_user_info(username, roles=[USER, FACULTY, ORGADMIN, ADMIN]):
     
     # If user not present in DB
     if not user:
-        if current.auth_type == AUTH_TYPE_LDAP :
+        if current.auth_type != AUTH_TYPE_DB :
             user_info = fetch_ldap_user(username)
             if user_info:
                 if [obj for obj in roles if obj in user_info['roles']]:
@@ -496,31 +494,29 @@ def get_cont_config(cont_id):
     if not cont_info : return
     
     container = Container(cont_info.UUID);
-#     logger.debug(container.logs())
-#     logger.debug(list_container(cont_info.UUID))
-    
-    cont_details1 = list_container(cont_info.UUID)
     container.updatedetails()
+    logger.debug("IN get_cont_config")
     
     if container:
         cont_details = container.properties
         logger.debug(cont_details)
-        cont_created = (datetime.datetime.fromtimestamp(cont_details1['Created'])).strftime('%A %d, %b %Y %H:%M') if cont_details1 else cont_details['Created']
+        cont_created = cont_details['Created'] #(datetime.datetime.fromtimestamp(cont_details1['Created'])).strftime('%A %d, %b %Y %H:%M')
         cont_command = cont_details['Cmd']
         cont_ports = cont_details['Ports'] if cont_details['Ports'] else {}
-        cont_status = cont_details1['Status'] if cont_details1 else cont_details['State']
-        logger.debug(cont_details['Ports'])
+        cont_status = cont_details['State']
+        cont_env = cont_details['Environment']
     else:
         cont_created = "-"
         cont_command = "-"
         cont_ports = [{u'IP': u'0.0.0.0', u'Type': u'', u'PublicPort': 0, u'PrivatePort': 0}]
         cont_status = "Invalid"
+        cont_env = cont_info.env_vars
     
     cont_info_map = {'id'           : cont_info.id,
                    'name'           : cont_info.name,
                    'RAM'            : str(round((cont_info.RAM/1024.0),2)) + ' GB',
                    'vcpus'          : str(cont_info.vCPU) + ' CPU',
-                   'env_vars'       : str(cont_info.env_vars) ,
+                   'env_vars'       : cont_env ,
                    'template'       : str(cont_info.image_profile) ,
                    'restart_policy' : str(cont_info.restart_policy) ,
                    'owner'          : cont_info.owner_id.first_name + ' ' + cont_info.owner_id.last_name if cont_info.owner_id > 0 else 'System User',

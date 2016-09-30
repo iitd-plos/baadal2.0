@@ -11,7 +11,7 @@ if 0:
     from applications.baadal.models import *  # @UnusedWildImport
 ###################################################################################
 from helper import get_constant, execute_remote_cmd
-from host_helper import delete_orhan_vm, HOST_STATUS_MAINTENANCE, HOST_STATUS_UP, \
+from host_helper import delete_orphan_vm, HOST_STATUS_MAINTENANCE, HOST_STATUS_UP, \
     HOST_STATUS_DOWN
 from log_handler import logger
 from maintenance import shutdown_baadal, bootup_baadal
@@ -345,12 +345,31 @@ def sanity_check():
     return dict(sanity_data=output, form=form)
     
 @check_moderator
+def cont_sanity_check():
+
+    output = check_cont_sanity()
+    
+    return dict(sanity_data=output)
+    
+@check_moderator
+def sync_container():
+    task = request.args[0]
+    cont_info = request.args[1]
+    if task == 'Delete_Orphan':
+        delete_orphan_cont(cont_info)
+    elif task == 'Add_Orphan_Cont':
+        add_orphan_cont(cont_info)
+    elif task == 'Delete_Cont_Info':
+        delete_cont_info(cont_info)
+    redirect(URL(r=request,c='admin',f='cont_sanity_check'))
+    
+@check_moderator
 def sync_vm():
     task = request.args[0]
     vm_name = request.args[1]
     host_id = request.args[2]
     if task == 'Delete_Orphan':
-        delete_orhan_vm(vm_name, host_id)
+        delete_orphan_vm(vm_name, host_id)
     elif task == 'Add_Orphan':
         add_orphan_vm(vm_name, host_id)
     elif task == 'Delete_VM_Info':
@@ -719,3 +738,7 @@ def create_zoom_tree():
 def zoom_tree():
     return dict()
 
+@check_moderator
+@handle_exception
+def nodes_containers():
+    return dict(output=get_node_container_list())

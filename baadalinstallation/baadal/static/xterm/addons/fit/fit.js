@@ -26,7 +26,7 @@
     /*
      * Plain browser environment
      */
-    fit(this.Xterm);
+    fit(window.Terminal);
   }
 })(function (Xterm) {
   /**
@@ -65,7 +65,6 @@
     cols = parseInt(availableWidth / characterWidth) - 1;
 
     geometry = {cols: cols, rows: rows};
-	console.log(geometry);
     return geometry;
   };
 
