@@ -291,7 +291,7 @@ Instl_Pkgs()
             echo "killing $PID"
             kill -9 $PID
         fi
-        /usr/sbin/mysqld
+        /usr/sbin/mysqld &
 
 
         ovs_net_config="<network>\n<name>ovs-net</name>\n<forward mode='bridge'/>\n<bridge name='baadal-br-int'/>\n<virtualport type='openvswitch'/>\n"
