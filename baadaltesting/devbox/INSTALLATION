@@ -1,3 +1,7 @@
+OS version :- ubuntu14.04 server 
+RAM:- 8G
+CPU:- 8Core
+
 Execute below steps to install devbox on your system.
 
 1. update your machine and install some packages
@@ -6,6 +10,7 @@ Execute below steps to install devbox on your system.
    apt-get install firefox
 
 2. make devbox
+(check web2py,mysql should be running)
 
 3. open firefox and open baadal GUI, http://localhost/baadal
    user:- admin
