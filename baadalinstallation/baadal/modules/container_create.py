@@ -9,14 +9,14 @@ import os
 import random
 import remote_vm_task as remote_machine
 
-cert_path = os.path.join(get_context_path(), 'modules/certs/')
-tls_config = docker.tls.TLSConfig(client_cert=(cert_path+'cert.pem', cert_path+'key.pem'),verify=cert_path+'ca.pem')
-
-docker_machine = get_docker_daemon_address();
-#client = docker.Client(base_url='https://:10.237.20.236:3376',version='auto', tls=tls_config)
-client = docker.Client(base_url='https://'+docker_machine[0]+':'+docker_machine[1],version='auto', tls=tls_config)
-Container.setclient(client);
-
+if config.getboolean("GENERAL_CONF","docker_enabled"):
+    cert_path = os.path.join(get_context_path(), 'modules/certs/')
+    tls_config = docker.tls.TLSConfig(client_cert=(cert_path+'cert.pem', cert_path+'key.pem'),verify=cert_path+'ca.pem')
+   
+    docker_machine = get_docker_daemon_address();
+    #client = docker.Client(base_url='https://:10.237.20.236:3376',version='auto', tls=tls_config)
+    client = docker.Client(base_url='https://'+docker_machine[0]+':'+docker_machine[1],version='auto', tls=tls_config)
+    Container.setclient(client);
 
 def proxieddomain (name) :
     #alias = '.baadalgateway.cse.iitd.ac.in'
