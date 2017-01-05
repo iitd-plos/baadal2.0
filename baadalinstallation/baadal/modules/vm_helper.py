@@ -1672,16 +1672,8 @@ def create_new_template(vm_details):
                 logger.debug("copy command running on " + vm_details.host_id.host_ip.private_ip + " host")
                 command_output = execute_remote_cmd(vm_details.host_id.host_ip.private_ip, 'root', copy_command)
                 logger.debug(command_output)
-
-                #if rc != 0:
-                #    logger.error("Copy not successful")
-                #    raise Exception("Copy not successful")
-                #    return (False, template, old_template)
-                #else:
-                #    logger.debug("Copied successfully")
-                #    return (True, template, old_template)
+                
                 return (True, template_location, old_template)
-
     except:
         if not domain.isPersistent():
             domain = connection_object.defineXML(xmlfile)
