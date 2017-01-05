@@ -1027,6 +1027,10 @@ def migrate_domain_datastore(vmid, destination_datastore_id, live_migration=Fals
 
         if os.path.exists (diskpath):
             os.remove(current_disk_file)
+            restore_symboltable_path = current_disk_path+"/restore_symboltable" 
+            if os.path.exists (restore_symboltable_path):
+               logger.debug(restore_symboltable_path)
+               os.remove(restore_symboltable_path)            
             os.rmdir(current_disk_path)
         connection_object.close()
 
