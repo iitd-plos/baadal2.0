@@ -61,6 +61,14 @@ auth.settings.create_user_groups = config.getboolean("AUTH_CONF","create_user_gr
 auth.settings.actions_disabled = config.get("AUTH_CONF",config.get("AUTH_CONF","actions_disabled"))
 auth.settings.remember_me_form = config.getboolean("AUTH_CONF","remember_me_form")
 
+auth.next = None
+if is_vm_enabled():
+    auth.settings.login_next = URL(r=request, c='user', f='list_my_vm')
+elif is_docker_enabled():
+    auth.settings.login_next = URL(r=request, c='user', f='list_my_container')
+else:
+    auth.settings.login_next = URL(r=request, c='default', f='index')
+
 if current.auth_type == AUTH_TYPE_OAUTH:
 
     ############for oauth  ##############
