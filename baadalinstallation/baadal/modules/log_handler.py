@@ -282,4 +282,4 @@ def _get_configured_logger(name):
 
 logger = _get_configured_logger(current.request.application)  # @UndefinedVariable
 rrd_logger = _get_configured_logger(current.request.application+'_rrd')  # @UndefinedVariable
-
+baadal_maintenance_logger = _get_configured_logger(current.request.application+'_maintenance')

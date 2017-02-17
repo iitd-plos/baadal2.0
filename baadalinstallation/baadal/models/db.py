@@ -219,7 +219,8 @@ db.define_table('host',
     Field('slot_number', 'integer'),
     Field('rack_number', 'integer'),
     Field('extra', 'string', length = 50),
-    Field('host_type', 'string', length = 20, default = HOST_TYPE_PHYSICAL))
+    Field('host_type', 'string', length = 20, default = HOST_TYPE_PHYSICAL),
+    Field('host_site', 'string', length = 20, default = 'dc'))
 
 db.host.extra.widget=SQLFORM.widgets.text.widget
 
@@ -325,7 +326,8 @@ db.define_table('vm_data',
     Field('affinity_flag', 'integer', default = 0),
     Field('saved_template', db.template),
     Field('delete_warning_date', 'datetime'),
-    Field('shutdown_warning_date', 'datetime'))
+    Field('shutdown_warning_date', 'datetime'),
+    Field('priority', 'integer', default = 0))
 
 db.vm_data.purpose.widget=SQLFORM.widgets.text.widget
 db.vm_data.public_ip.requires = IS_EMPTY_OR(IS_IN_DB(db, 'public_ip_pool.id', '%(public_ip)s', zero=None))

@@ -179,12 +179,17 @@ def _choose_mac_ip_vncport(vm_properties):
     vm_properties['vnc_port'] = str(random_vnc_port)
 
 
-def find_new_host(RAM, vCPU):
+def find_new_host(RAM, vCPU, site=None):
     """
     Select a random host from list of 3 hosts with available RAM and CPU
     Availability is checked with 200 percent over-commitment.
     """
-    hosts = current.db(current.db.host.status == 1).select()
+    if site == 'dr':
+        hosts = current.db(current.db.host.status == 1 and current.db.host.host_site =='dr').select()
+    elif site == 'dc':
+        hosts = current.db(current.db.host.status == 1 and current.db.host.host_site =='dc').select()
+    else:
+        hosts = current.db(current.db.host.status == 1).select()
     hosts = hosts.as_list(True,False) 
     count = 3 
     selected_hosts = []
