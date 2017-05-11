@@ -1,6 +1,7 @@
 /**
- * Implements the attach method, that attaches the terminal to a WebSocket stream.
- * @module xterm/addons/attach/attach
+ * This module provides methods for attaching a terminal to a terminado WebSocket stream.
+ *
+ * @module xterm/addons/terminado/terminado
  * @license MIT
  */
 
@@ -37,7 +38,7 @@
    *                             should happen instantly or at a maximum
    *                             frequency of 1 rendering per 10ms.
    */
-  exports.attach = function (term, socket, bidirectional, buffered) {
+  exports.terminadoAttach = function (term, socket, bidirectional, buffered) {
     bidirectional = (typeof bidirectional == 'undefined') ? true : bidirectional;
     term.socket = socket;
 
@@ -58,15 +59,22 @@
     };
 
     term._getMessage = function (ev) {
-      if (buffered) {
-        term._pushToBuffer(ev.data);
-      } else {
-        term.write(ev.data);
+      var data = JSON.parse(ev.data)
+      if( data[0] == "stdout" ) {
+        if (buffered) {
+          term._pushToBuffer(data[1]);
+        } else {
+          term.write(data[1]);
+        }
       }
     };
 
     term._sendData = function (data) {
-      socket.send(data);
+      socket.send(JSON.stringify(['stdin', data]));
+    };
+
+    term._setSize = function (size) {
+      socket.send(JSON.stringify(['set_size', size.rows, size.cols]));
     };
 
     socket.addEventListener('message', term._getMessage);
@@ -74,9 +82,10 @@
     if (bidirectional) {
       term.on('data', term._sendData);
     }
+    term.on('resize', term._setSize);
 
-    socket.addEventListener('close', term.detach.bind(term, socket));
-    socket.addEventListener('error', term.detach.bind(term, socket));
+    socket.addEventListener('close', term.terminadoDetach.bind(term, socket));
+    socket.addEventListener('error', term.terminadoDetach.bind(term, socket));
   };
 
   /**
@@ -86,7 +95,7 @@
    * @param {WebSocket} socket - The socket from which to detach the current
    *                             terminal.
    */
-  exports.detach = function (term, socket) {
+  exports.terminadoDetach = function (term, socket) {
     term.off('data', term._sendData);
 
     socket = (typeof socket == 'undefined') ? term.socket : socket;
@@ -108,8 +117,8 @@
    *                             should happen instantly or at a maximum
    *                             frequency of 1 rendering per 10ms.
    */
-  Xterm.prototype.attach = function (socket, bidirectional, buffered) {
-    return exports.attach(this, socket, bidirectional, buffered);
+  Xterm.prototype.terminadoAttach = function (socket, bidirectional, buffered) {
+    return exports.terminadoAttach(this, socket, bidirectional, buffered);
   };
 
   /**
@@ -118,8 +127,8 @@
    * @param {WebSocket} socket - The socket from which to detach the current
    *                             terminal.
    */
-  Xterm.prototype.detach = function (socket) {
-    return exports.detach(this, socket);
+  Xterm.prototype.terminadoDetach = function (socket) {
+    return exports.terminadoDetach(this, socket);
   };
 
   return exports;

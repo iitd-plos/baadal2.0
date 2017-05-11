@@ -53,9 +53,9 @@ window.onload = function () {
     
 });
 
-chart.render();	
+    chart.render();	
     
-function update_graph()
+    function update_graph()
 {
    graph_type = jQuery("#tabs-task .ui-tabs-nav .ui-state-active a").attr("href").replace('#','');
    period = $('input[name=graph-period-radio]:radio:checked').val();
@@ -64,31 +64,16 @@ function update_graph()
    m_type = "{{=m_type}}";
    vm_cpu = "{{=vm_cpu}}";
    jQuery.ajax({type:"POST",url:"{{=URL('create_graph')}}", data:{graphType:graph_type, vmIdentity:vm_identity,vm_RAM:vm_ram,host_CPU:vm_cpu,
-   graphPeriod:period,mtype:m_type}, 
-   	error:function(x,e){
-   		console.log('ERROR');
-   		console.log(e);
-   		console.log(x.status);
-   		console.log(x.responseText); }, 
-   	success:function(ret1) {
-
-       	ret1 = ret1.replace('<html>','');
-       	ret1 = ret1.replace('</html>','');
-       	ret1 = ret1.replace('<body>','');
-       	ret1 = ret1.replace('</body>','');
-       	ret1 = ret1.replace('<p>','');
-       	ret1 = ret1.replace('</p>','');
-       	ret1 = ret1.replace(new RegExp('&quot;','g'),'"');
-
-       	ret = $.parseJSON(ret1);
-       	if (graph_type=='cpu' | graph_type=='ram'){
-            var length=ret['data'].length;}
-       	else{var length=ret['data'][0].length;}
+   graphPeriod:period,mtype:m_type},dataType: "json", success:function(ret) {
+	if (graph_type=='cpu' | graph_type=='ram'){
+	    var length=ret['data'].length;}
+	else{var length=ret['data'][0].length;}
        
-       	if (length==0){
-            
-            $("#target").html("<b>RRD IS UNAVAILABLE!!!!!!</b>");}
-       else
+	
+        if (length==0){
+	    
+	    $("#target").html("<b>RRD IS UNAVAILABLE!!!!!!</b>");}
+        else
 	   { 
 	    chart.options.data[0].dataPoints=[];
 	    chart.options.data[1].dataPoints=[];

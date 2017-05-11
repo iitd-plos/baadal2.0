@@ -228,7 +228,7 @@ def request_container_validation(form):
         validate_approver(form)
     else:
         form.vars.owner_id = auth.user.id    
-#     vm_users = request.post_vars.vm_users
+    vm_users = request.post_vars.vm_users
     env_vars = request.post_vars.env_var_list
     logger.debug(form.vars)
     
@@ -244,9 +244,9 @@ def request_container_validation(form):
     logger.debug(env_dict)
     form.vars.env_vars = env_dict
     user_list = []
-#     if vm_users and len(vm_users) > 1:
-#         for vm_user in vm_users[1:-1].split('|'):
-#             user_list.append(db(db.user.username == vm_user).select(db.user.id).first()['id'])
+    if vm_users and len(vm_users) > 1:
+        for vm_user in vm_users[1:-1].split('|'):
+            user_list.append(db(db.user.username == vm_user).select(db.user.id).first()['id'])
     
     if request.post_vars.faculty_user:
         user_list.append(form.vars.owner_id)
@@ -375,6 +375,7 @@ def get_request_container_form():
     db.request_queue.vCPU.notnull = True  
     db.request_queue.RAM.requires=IS_INT_IN_RANGE(100,8193)
     db.request_queue.vCPU.requires=IS_INT_IN_RANGE(1,9)
+    db.request_queue.vm_name.requires = [IS_MATCH('^[a-zA-Z0-9][\w\-]*$', error_message=NAME_ERROR_MESSAGE), IS_LENGTH(30,1), IS_NOT_IN_DB(db,'container_data.name')]
     mark_required(db.request_queue)
     
     form =SQLFORM(db.request_queue, fields = form_fields, hidden=dict(vm_users='|',env_var_list='|'))
@@ -505,6 +506,7 @@ def get_cont_config(cont_id):
         cont_ports = cont_details['Ports'] if cont_details['Ports'] else {}
         cont_status = cont_details['State']
         cont_env = cont_details['Environment']
+        exec_ids = cont_details['ExecIDs']
     else:
         cont_created = "-"
         cont_command = "-"
@@ -525,10 +527,12 @@ def get_cont_config(cont_id):
                    'created'        : cont_created,
                    'command'        : cont_command,
                    'ports'          : cont_ports,
-                   'status'         : cont_status}
+                   'status'         : cont_status,
+                   'ExecIds' 		: exec_ids}
 
 
     return cont_info_map  
+
 
 def get_container_uuid(cont_id):
     cont_info = db.container_data[cont_id]
@@ -542,22 +546,50 @@ def get_container_logs(cont_id):
     cont_info = db.container_data[cont_id]
     if not cont_info : return
     
-    container = Container(cont_info.UUID);
+    container = Container(cont_info.UUID,setProp=False);
     return container.logs()
 
+def get_container_archive(cont_id,file_path):
+    cont_info = db.container_data[cont_id]
+    if not cont_info : 
+		return None
+    
+    container = Container(cont_info.UUID,setProp=False);
+    return container.get_archive(file_path)
 
+def get_container_archive_wd(cont_id):
+    cont_info = db.container_data[cont_id]
+    if not cont_info : 
+		return None
+    
+    container = Container(cont_info.UUID);
+    return container.get_archive(container.properties['WorkingDir'])
+    
 def get_container_stats(cont_uuid):
     
-    container = Container(cont_uuid);
+    container = Container(cont_uuid,setProp=False);
     return container.stats()
 
+def get_container_execsession(cont_uuid):
+	container = Container(cont_uuid,setProp=False);
+	return container.execidgenerator()
 
-def get_container_top(cont_id):
+def get_container_execresize(cont_uuid,cont_session,height,width):
+	container = Container(cont_uuid,setProp=False);
+	container.execresize(cont_session,height,width);
+	
+def get_container_top(cont_id,pid_args='aux'):
     cont_info = db.container_data[cont_id]
     if not cont_info : return
     
-    container = Container(cont_info.UUID);
-    return container.top()
+    container = Container(cont_info.UUID,setProp=False);
+    return container.top(pid_args)
+    
+def get_container_upload_data(cont_uuid,file_path,file_data):
+	container = Container(cont_uuid,setProp=False);
+	return container.upload(file_path,file_data);
+	
+	
 
 
 def get_vpn_user_details():
@@ -597,15 +629,21 @@ def request_vpn():
     except Exception:
         return 2
 
-
-    
-    
 def get_vm_user_list(vm_id) :		
     vm_users = db((vm_id == db.user_vm_map.vm_id) & (db.user_vm_map.user_id == db.user.id)).select(db.user.ALL)
     user_id_lst = []
     for vm_user in vm_users:
         user_id_lst.append(vm_user)
     return user_id_lst
+
+
+def get_cont_user_list(cont_id) :        
+    cont_users = db((cont_id == db.user_container_map.cont_id) & (db.user_container_map.user_id == db.user.id)).select(db.user.ALL)
+    user_id_lst = []
+    for cont_user in cont_users:
+        user_id_lst.append(cont_user)
+    return user_id_lst
+
 
 def is_request_in_queue(vm_id, task_type, snapshot_id=None):
     """

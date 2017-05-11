@@ -9,18 +9,18 @@ import os
 import random
 import remote_vm_task as remote_machine
 
-if config.getboolean("GENERAL_CONF","docker_enabled"):
-    cert_path = os.path.join(get_context_path(), 'modules/certs/')
-    tls_config = docker.tls.TLSConfig(client_cert=(cert_path+'cert.pem', cert_path+'key.pem'),verify=cert_path+'ca.pem')
-   
-    docker_machine = get_docker_daemon_address();
-    #client = docker.Client(base_url='https://:10.237.20.236:3376',version='auto', tls=tls_config)
-    client = docker.Client(base_url='https://'+docker_machine[0]+':'+docker_machine[1],version='auto', tls=tls_config)
-    Container.setclient(client);
+cert_path = os.path.join(get_context_path(), 'modules/certs/')
+tls_config = docker.tls.TLSConfig(client_cert=(cert_path+'cert.pem', cert_path+'key.pem'),verify=cert_path+'ca.pem')
+
+docker_machine = get_docker_daemon_address();
+#client = docker.Client(base_url='https://:10.237.20.236:3376',version='auto', tls=tls_config)
+client = docker.Client(base_url='https://'+docker_machine[0]+':'+docker_machine[1],version='auto', tls=tls_config)
+Container.setclient(client);
+
 
 def proxieddomain (name) :
     #alias = '.baadalgateway.cse.iitd.ac.in'
-    alias ='.docker.iitd.ac.in'
+    alias ='.apps.iitd.ac.in'
     address = name +alias;
     return address[1:];         # required name contains '/' at start
 
@@ -57,7 +57,7 @@ def start_cont(parameters):
         cont_id = parameters['cont_id']
         logger.debug("In start_container() function...")
         cont_details = current.db.container_data[cont_id]
-        container = Container(cont_details.UUID);
+        container = Container(cont_details.UUID,setProp=False);
         container.start()
         cont_details.update_record(status=current.VM_STATUS_RUNNING)
         message = "Container started successfully."
@@ -72,7 +72,7 @@ def stop_cont(parameters):
         cont_id = parameters['cont_id']
         logger.debug("In stop_container() function...")
         cont_details = current.db.container_data[cont_id]
-        container = Container(cont_details.UUID);
+        container = Container(cont_details.UUID,setProp=False);
         container.stop()
         cont_details.update_record(status=current.VM_STATUS_SHUTDOWN)
         message = "Container stopped successfully."
@@ -87,7 +87,7 @@ def suspend_cont(parameters):
         cont_id = parameters['cont_id']
         logger.debug("In suspend_container() function...")
         cont_details = current.db.container_data[cont_id]
-        container = Container(cont_details.UUID);
+        container = Container(cont_details.UUID,setProp=False);
         container.pause()
         cont_details.update_record(status=current.VM_STATUS_SUSPENDED)
         message = "Container suspended successfully."
@@ -102,7 +102,7 @@ def resume_cont(parameters):
         cont_id = parameters['cont_id']
         logger.debug("In resume_container() function...")
         cont_details = current.db.container_data[cont_id]
-        container = Container(cont_details.UUID);
+        container = Container(cont_details.UUID,setProp=False);
         container.resume()
         cont_details.update_record(status=current.VM_STATUS_RUNNING)
         message = "Container resumed successfully."
@@ -117,7 +117,7 @@ def delete_cont(parameters):
         cont_id = parameters['cont_id']
         logger.debug("In delete_container() function...")
         cont_details = current.db.container_data[cont_id]
-        container = Container(cont_details.UUID);
+        container = Container(cont_details.UUID,setProp=False);
         container.remove()
         del current.db.container_data[cont_id]
         message = "Container deleted successfully."
@@ -132,7 +132,7 @@ def recreate_cont(parameters):
         cont_id = parameters['cont_id']
         logger.debug("In recreate_container() function...")
         cont_details = current.db.container_data[cont_id]
-        container = Container(cont_details.UUID);
+        container = Container(cont_details.UUID,setProp=False);
         container.remove()
 
         mount_hostvolumes = '/root/user/'+ cont_details.owner_id.username +'/'+cont_details.name
@@ -160,10 +160,23 @@ def restart_cont(parameters):
         cont_id = parameters['cont_id']
         logger.debug("In restart_container() function...")
         cont_details = current.db.container_data[cont_id]
-        container = Container(cont_details.UUID);
+        container = Container(cont_details.UUID,setProp=False);
         container.restart()
         cont_details.update_record(status=current.VM_STATUS_RUNNING)
         message = "Container restarted successfully."
+        return (current.TASK_QUEUE_STATUS_SUCCESS, message)                    
+    except:
+        logger.debug("Task Status: FAILED Error: %s " % log_exception())
+        return (current.TASK_QUEUE_STATUS_FAILED, log_exception())
+
+def backup_cont(parameters):
+    try:
+        cont_id = parameters['cont_id']
+        logger.debug("In backup_container() function...")
+        cont_details = current.db.container_data[cont_id]
+        container = Container(cont_details.UUID);
+        container.backup(cont_details.owner_id.username)
+        message = "Container commited successfully."
         return (current.TASK_QUEUE_STATUS_SUCCESS, message)                    
     except:
         logger.debug("Task Status: FAILED Error: %s " % log_exception())
@@ -180,7 +193,7 @@ def scale(name,uuid,templateid,env,cpushare,memory,scaleconstant):
     if( port) :    
         addip(name,uuids);
 
-def install_container(name,templateid,env,cpushare,memory,portmap=False,setnginx=True):
+def install_container(name,templateid,env,cpushare,memory,portmap=False,setnginx=True,restart_policy='no'):
     imageprofile = getImageProfile(templateid)
     nodes = get_node_to_deploy();
     nodeindex = get_node_pack(nodes,memory,1);
@@ -193,10 +206,13 @@ def install_container(name,templateid,env,cpushare,memory,portmap=False,setnginx
         env['constraint:node='] =nodes[nodeindex]['Name'];
     env['TERM'] = 'xterm';
     if(imageprofile['updatemysql'] ):
-        extrahosts = {'mysql':config.get("DOCKER_CONF","mysql_machine")}
+        extrahosts = {'mysql':config.get("DOCKER_CONF","mysql_machine_ip")}
     else :
         extrahosts = None;
-    hostconfig = client.create_host_config(publish_all_ports = portmap,mem_limit = memory,cap_drop=imageprofile['permissiondrop'],cap_add=imageprofile['permissionadd'],links  = imageprofile['links'],extra_hosts=extrahosts);
+    ulimits=[];
+    ulimits.append(docker.utils.Ulimit(Name='NPROC',Soft=500,Hard=1000));
+    ulimits.append(docker.utils.Ulimit(Name='NOFILE',Soft=4000,Hard=8000));
+    hostconfig = client.create_host_config(publish_all_ports = portmap,mem_limit = memory,cap_drop=imageprofile['permissiondrop'],cap_add=imageprofile['permissionadd'],links  = imageprofile['links'],extra_hosts=extrahosts,restart_policy={'Name':restart_policy,'MaximumRetryCount':5},ulimits=ulimits);
     try: 
         containerid = client.create_container(name=name,image = imageprofile['Id'] , command = imageprofile['cmd'],
                               environment = env , detach = True ,cpu_shares=cpushare,
@@ -208,8 +224,8 @@ def install_container(name,templateid,env,cpushare,memory,portmap=False,setnginx
     try:                     
         response = client.start(container = containerid['Id']);  # @UnusedVariable
         # Update the db -- container in running state
-    except docker.errors as e:
-        print(e);
+    except Exception as e:
+        logger.debug(e);
     if( port and setnginx) :
         container = Container(containerid);    
         container.addipbyconf();    
@@ -258,7 +274,7 @@ def garbage_collector():
         output = remote_machine.execute_remote_cmd(nginx_server[0],nginx_server[1],cmd,nginx_server[2])
     
     #Delete any mysql database whose app is missing
-    datalist= ['information_schema','sys','mysql','performance_schema']
+    '''datalist= ['information_schema','sys','mysql','performance_schema']
     datalist.append(namelist);
     cmd = """bash -c "mypassword='my-secret-pw' /var/lib/mysql/mysql.sh -l" """ ;
     container = Container('f966820cf4a0')
@@ -276,9 +292,9 @@ def garbage_collector():
         print(cmd);
         container.execcmd(cmd);
     container = 'None';
-    
+    '''
     #Delete any containers not in database
-    print('not implemented')
+    #print('not implemented')
     
 def get_node_to_deploy():
     templist = client.info();
@@ -374,8 +390,9 @@ def listallcontainerswithnodes():
     
 def list_container(showall):
 
-    containerlist = client.containers(all=showall);
-    keystodisplay = ["Image","Created","Names" , "Id", "State" , "Command" ,"Status","Ports"]
+    containerlist = client.containers(all=showall,size=True);
+    logger.debug(containerlist);
+    keystodisplay = ["Image","Created","Names" , "Id", "State" , "Command" ,"Status","Ports","Size"]
     newlist = [];
     for x in containerlist:
         containerex = x;
@@ -383,9 +400,6 @@ def list_container(showall):
         for key,value in containerex.items():
             if ( key in keystodisplay):
                 containerlimited[key] = value;
-        newlist.append(containerlimited);            
+        newlist.append(containerlimited);   
+    #logger.debug(newlist);
     return newlist;
-
-
-    
- 

@@ -22,8 +22,6 @@ response.top_menu = [
     (T('FAQ'), False, URL('default','faq')),
     (T('Solutions'), False, URL('default','solutions')),
     (T('Pricing'), False, URL('default','pricing')),
-    (T('Client'), False, URL('default','client')),
-    (T('Gallery'), False, URL('default','gallery')),
     (T('Contact Us'), False, URL('default','contact'))
     ]
 if auth.is_logged_in():

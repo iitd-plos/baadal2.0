@@ -41,6 +41,11 @@ class manageproxy:
 			proxy_pass http://@x;
 			proxy_set_header X-Real-IP $remote_addr;
 			proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;   
+			 proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+
+          # VNC connection timeout
+          proxy_read_timeout 61s;
 			 proxy_set_header X-NginX-Proxy true;    
 			 proxy_set_header Host $host;   
 			  proxy_set_header X-Forwarded-Proto $scheme;   

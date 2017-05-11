@@ -187,10 +187,22 @@ def user_details():
 
 @check_moderator
 @handle_exception
+def add_container_user():
+    cont_id = request.args[0]
+    form = get_search_user_form()
+    if form.accepts(request.vars, session, onvalidation = validate_user):
+        redirect(URL(c ='admin', f = 'add_user_to_container', args = [form.vars.user_id, cont_id]))
+    elif form.errors:
+        session.form = 'Invalid user id'
+
+    return dict(form=form)
+
+@check_moderator
+@handle_exception
 def add_user_to_vm():
     username = request.args[0]
     vm_id = request.args[1]
-    form = get_user_form(username, vm_id)
+    form = get_user_form(username, vm_id, True)
 
     if form.accepts(request.vars,session):
         
@@ -208,12 +220,38 @@ def add_user_to_vm():
 
 @check_moderator
 @handle_exception
+def add_user_to_container():
+    username = request.args[0]
+    cont_id = request.args[1]
+    form = get_user_form(username, cont_id, False)
+
+    if form.accepts(request.vars,session):
+        
+        add_user_cont_access(cont_id, form.vars.user_id)
+        session.flash = "User is added to Container"
+        redirect(URL(r = request, c = 'user', f = 'cont_settings', args = cont_id))
+    elif form.errors:
+        session.form = 'Error in form'
+    return dict(form = form)
+
+
+@check_moderator
+@handle_exception
 def delete_user_vm():
     vm_id=request.args[0]
     user_id=request.args[1]
     delete_user_vm_access(int(vm_id), int(user_id))    			
     session.flash = 'User access for the VM is removed.'
     redirect(URL(r = request, c = 'user', f = 'settings', args = vm_id))
+
+@check_moderator
+@handle_exception
+def delete_user_cont():
+    cont_id=request.args[0]
+    user_id=request.args[1]
+    delete_user_cont_access(int(cont_id), int(user_id))                
+    session.flash = 'User access for the Container is removed.'
+    redirect(URL(r = request, c = 'user', f = 'cont_settings', args = cont_id))
 
 @check_moderator
 @handle_exception

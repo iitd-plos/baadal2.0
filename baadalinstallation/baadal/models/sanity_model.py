@@ -370,6 +370,9 @@ def check_cont_sanity():
     except:
         log_exception()
         pass
+
+    db(~db.user_container_map.cont_id.belongs(db().select(db.container_data.id))).delete()
+    db.commit()
     
     db_conts=db(db.container_data.status.belongs(VM_STATUS_RUNNING, VM_STATUS_SUSPENDED, VM_STATUS_SHUTDOWN)).select()
     for db_cont in db_conts:

@@ -111,14 +111,14 @@ User should also secure its virtual machine as it would with any other PC.
 Fill the form according to your requirement. Your container will be created once request is approved by admin.
 </p></li>
 <li>
-<b>After Container is created, how can I access my VM?</b><br/>
+<b>After Container is created, how can I access my Container?</b><br/>
 <p>After Container is created, you can access shell of container by going execute option.
 <br><i>USER MENU > My Containers > Settings > Execute</i><br>
 By default Containers are created with private ip access.However , containers with web servers have their 80 port are reverse proxied<br/>
 </p></li>
 <li>
 <b>What types of applications are available as containerized service?</b><br/>
-<p>Currently , php , php+apache ,php+apache+mysql , wordpress are available.
+<p>Currently , php , php+apache ,php+apache+mysql , wordpress ,matlab, gcc, python, ml-toolkit are available.
 </p></li>
 <li>
 <b>Can I commit my container</b><br/>
@@ -138,13 +138,17 @@ By default Containers are created with private ip access.However , containers wi
 </p></li>
 <li>
 <b>How much storage will be allocated to the container</b>
-<p>Containers are supposed to be light-weight. User is requested not to install any library. Instead , they can request container with these libraries pre-installed.
+<p>Containers are supposed to be light-weight. User is requested not to install any library. Instead, they can request container with these libraries pre-installed.
 </p></li>
 
 <li>
 <b>Is my Container secure?</b><br/>
-<p>Containers are secure by default . User in the container is isolated by namespaces. have acess restricted to their filesystems.<br/>
+<p>Containers are secure by default .User in the container is isolated by namespaces and  have acess restricted to their filesystems only.<br/>
 </p></li>
+<li>
+	<b>How to start an application?</b><
+	<p>Please look into the <a href="{{=URL('static','documentation/steps.pdf')}}">Documentation</a></p>
+</li>
 {{pass}}
 {{pass}}  
 </ul>

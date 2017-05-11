@@ -16,7 +16,7 @@ from log_handler import logger, rrd_logger
 from host_helper import HOST_STATUS_UP
 from load_balancer import find_host_and_guest_list, loadbalance_vm
 from container_create import install_cont, start_cont, stop_cont, suspend_cont,\
-    resume_cont, delete_cont, restart_cont, recreate_cont
+    resume_cont, delete_cont, restart_cont, recreate_cont, backup_cont
 from gluon import current
 current.cache = cache
 
@@ -48,7 +48,8 @@ task = {
         CONTAINER_RESUME            :    resume_cont,
         CONTAINER_DELETE            :    delete_cont,
         CONTAINER_RESTART           :    restart_cont,
-        CONTAINER_RECREATE          :    recreate_cont
+        CONTAINER_RECREATE          :    recreate_cont,
+        CONTAINER_COMMIT            :    backup_cont
        }
 
 

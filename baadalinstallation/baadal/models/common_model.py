@@ -556,7 +556,11 @@ def get_cont_operations(cont_id):
                      'stop_cont'             : ('user', 'shutdown2.png', 'Stop this Container'),
                      'confirm_deletion()'    : ( None, 'delete.png', 'Delete this container'),
                      'restart_cont'          : ('user', 'on-off.png', 'Restart this Container'),
-                     'confirm_recreate()'    : (None, 'recreate.png', 'Re-create this Container')}
+                     'commit_cont'           : ('user', 'snapshot.png', 'Take container snapshot'),
+                     'download_cont'		 : ('user','download.png', 'Download Container'),
+                     'download_wd'			 : ('user','downloadw.png', 'Download working directory'),
+                     'confirm_recreate()'    : (None, 'recreate.png', 'Re-create this Container'),
+                     'add_container_user'    : ('admin', 'user_add.png', 'Add User to Container')}
 
     valid_operations_list = []
     
@@ -572,7 +576,10 @@ def get_cont_operations(cont_id):
         elif cont_status == VM_STATUS_SHUTDOWN:
                 valid_operations.extend(['start_cont'])
 
-    valid_operations.extend(['confirm_deletion()','confirm_recreate()'])
+    valid_operations.extend(['commit_cont','download_cont','download_wd', 'confirm_deletion()','confirm_recreate()'])
+    if is_moderator():
+        valid_operations.extend(['add_container_user'])
+    
     for valid_operation in valid_operations:
         
         op_data = cont_operations[valid_operation]

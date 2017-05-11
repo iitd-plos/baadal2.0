@@ -50,7 +50,7 @@ __all__ = ['add_collaborators', 'add_cont_task_to_queue', 'add_container_users',
            'specify_user_roles', 'update_host_status', 'update_snapshot_flag', 'update_task_ignore', 
            'update_task_retry', 'update_vm_lock', 'validate_user', 'verify_vm_request', 'vm_has_snapshots', 
            'zoom_info', 'get_node_container_list', 'check_cont_sanity','delete_orphan_cont', 'add_orphan_cont', 
-           'delete_cont_info','is_nic_setup']
+           'delete_cont_info']
 
 if 0:
     from admin_model import *
