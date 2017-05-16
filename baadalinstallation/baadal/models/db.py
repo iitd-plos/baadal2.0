@@ -17,9 +17,6 @@ from host_helper import HOST_TYPE_PHYSICAL
 from simplejson import loads, dumps
 import requests
 
-
-# from helper import logger
-
 #### Connection Pooling of Db is also possible
 
 db_type = config.get("GENERAL_CONF","database_type")
