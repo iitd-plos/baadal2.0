@@ -392,7 +392,13 @@ def get_impi_output(cmd,host_ip):
 def get_host_temp_usage(host_ip):
     rrd_logger.info("Checking temp on host"+str(type(host_ip)))
     command='ipmitool sdr elist full'
-    ret=execute_remote_cmd(host_ip, 'root', command, None,  True)
+    try:
+        ret=execute_remote_cmd(host_ip, 'root', command, None,  True)
+    except Exception, e:
+        temp=0
+        ret=""
+        rrd_logger.debug("ipmitool not installed")
+
     if str(ret).find("Inlet Temp")!=int(-1):
         rrd_logger.debug("Entering")
         temp=get_impi_output('ipmitool sdr elist full | grep "Inlet Temp"',host_ip)
@@ -407,7 +413,13 @@ def get_host_temp_usage(host_ip):
 def get_host_power_usage(host_ip):
     rrd_logger.info("Checking power on host"+str(host_ip))
     command='ipmitool sdr elist full'
-    ret=execute_remote_cmd(host_ip, 'root', command, None,  True)
+    try:
+        ret=execute_remote_cmd(host_ip, 'root', command, None,  True)
+    except Exception, e:
+        pwr_usage=0
+        ret=""
+        rrd_logger.debug("ipmitool not installed")
+
     if str(ret).find("System Level")!=int(-1):
         pwr_usage=get_impi_output('ipmitool sdr elist full | grep "System Level"',host_ip)
     if str(ret).find("Pwr Consumption")!=int(-1):
