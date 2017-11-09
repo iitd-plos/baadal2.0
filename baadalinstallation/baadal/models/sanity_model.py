@@ -15,7 +15,6 @@ if 0:
     from applications.baadal.models import *  # @UnusedWildImport
 ###################################################################################
 from cont_handler import Container
-from container_create import get_node_to_deploy, list_container
 from helper import execute_remote_cmd, log_exception
 from host_helper import HOST_STATUS_UP, get_host_domains
 from images import getImage
@@ -319,6 +318,7 @@ def check_cont_sanity():
     cont_check= []
     cont_list = []
     
+    from container_create import get_node_to_deploy, list_container
     nodes = get_node_to_deploy()
     containers = list_container( showall=True);
 
