@@ -26,9 +26,9 @@ PROFILE = iitd
 HOST_ID = 1
   
 UBUNTU = $(UTILS_DIR)/ubuntu.iso
-UBUNTU_ALTERNATE = http://repo.iitd.ac.in/ubuntu-releases/trusty/ubuntu-14.04.2-server-amd64.iso
+UBUNTU_ALTERNATE = http://repo.iitd.ac.in/ubuntu-releases/trusty/ubuntu-14.04.5-server-amd64.iso
 UBUNTU_ALTERNATE_EXTERNAL = http://releases.ubuntu.com/trusty/ubuntu-14.04-alternate-amd64.iso
-UBUNTU_SERVER = http://repo.iitd.ac.in/ubuntu-releases/trusty/ubuntu-14.04.2-server-amd64.iso
+UBUNTU_SERVER = http://repo.iitd.ac.in/ubuntu-releases/trusty/ubuntu-14.04.5-server-amd64.iso
 UBUNTU_SERVER_EXTERNAL = http://releases.ubuntu.com/trusty/ubuntu-14.04-server-amd64.iso
 UBUNTU_SOURCE = $(UBUNTU_SERVER)
 
