@@ -10,7 +10,6 @@ if 0:
     from gluon import db, request, session
     from applications.baadal.models import *  # @UnusedWildImport
 ###################################################################################
-from container_create import listallcontainerswithnodes
 from dhcp_helper import create_dhcp_entry, remove_dhcp_entry, \
     create_dhcp_bulk_entry
 from helper import IS_MAC_ADDRESS, get_ips_in_range, generate_random_mac
@@ -1225,6 +1224,7 @@ def zoom_info(g_type):
 
 def get_node_container_list():
     
-    
+    from container_create import listallcontainerswithnodes
+
     return listallcontainerswithnodes()
     
