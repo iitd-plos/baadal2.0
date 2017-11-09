@@ -34,7 +34,7 @@ NOTE: Install virt-viewer on sandbox machine(apt-get install virt-viewer)
           - virsh list --all (It will display all vms on host)
           - virt-viewer baadal_nat
       Once installation of nat is complete, nat machine will shoutdown.
-      Start nat machine with command 'virsh start nat'.
+      Start nat machine with command 'virsh start baadal_nat'.
       Once its started you can ssh to it using ip 10.0.0.3 or 192.168.0.3 dependending on ip range you choose in STEP 2. 
 
 
