@@ -1,6 +1,6 @@
 Baadal Testing Sandbox
 ===============================================
-This sandbox installation script is tested on Ubuntu-14.04
+This sandbox installation script is tested on Ubuntu-14.04. Sandbox installation instructions can be found here (https://github.com/iitd-plos/baadal2.0/blob/master/baadaltesting/sandbox/INSTALLATION)
 
 Pre-requisites
 -----------------------------------------------
@@ -32,9 +32,7 @@ Setup Instructions
 
 Post Installation Instructions
 ------------------------------------------------
-* __README__ regarding Controller configuration can be found [here](https://github.com/apoorvemohan/newbaadal/tree/master). 
-
-  It is reccomended that these configurations are made before setting up sandbox as the files are copied into the sandbox during sandbox setup. Otherwise these files are found in __/baadal__ in respective VMs and can be updated there.
+It is reccomended that these configurations are made before setting up sandbox as the files are copied into the sandbox during sandbox setup. Otherwise these files are found in __/baadal__ in respective VMs and can be updated there.
 * Once the VMs are created use __virsh__ to make changes to them
 * Do not run any __make clean-\*__ if you don't wish to loose the data of the vm
 * After installation of OS on these VMs (Host, Controller, Filer), ssh into them and run installation scripts located in __/baadal__
