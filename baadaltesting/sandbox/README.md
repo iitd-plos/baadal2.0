@@ -1,6 +1,6 @@
 Baadal Testing Sandbox
 ===============================================
-This sandbox installation script is tested on Ubuntu-14.04. Sandbox installation instructions can be found here (https://github.com/iitd-plos/baadal2.0/blob/master/baadaltesting/sandbox/INSTALLATION)
+This sandbox installation script is tested on Ubuntu-14.04. Sandbox installation instructions can be found [here] (https://github.com/iitd-plos/baadal2.0/blob/master/baadaltesting/sandbox/INSTALLATION).
 
 Pre-requisites
 -----------------------------------------------
