@@ -40,7 +40,7 @@ LIBVIRTPYTHON_SOURCE = http://libvirt.org/sources/python/libvirt-python-1.2.6.ta
 LIBVIRTPYTHON_TAR=$(UTILS_DIR)/libvirt-python-1.2.6.tar.gz
 
 VIRTMANAGER = $(UTILS_DIR)/virt-manager-0.10.0.tar.gz
-VIRTMANAGER_SOURCE = https://git.fedorahosted.org/cgit/virt-manager.git/snapshot/virt-manager-0.10.0.tar.gz
+VIRTMANAGER_SOURCE = https://releases.pagure.org/virt-manager/virt-manager-0.10.0.tar.gz
 
 BIN_CONFIGURE=$(BIN_DIR)/configure.sh
 BIN_CONTROLLER = $(BIN_DIR)/controller.sh
