@@ -15,8 +15,8 @@ from nat_mapper import clear_all_timedout_vnc_mappings
 from log_handler import logger, rrd_logger
 from host_helper import HOST_STATUS_UP
 from load_balancer import find_host_and_guest_list, loadbalance_vm
-from container_create import install_cont, start_cont, stop_cont, suspend_cont,\
-    resume_cont, delete_cont, restart_cont, recreate_cont, backup_cont
+#from container_create import install_cont, start_cont, stop_cont, suspend_cont,\
+#    resume_cont, delete_cont, restart_cont, recreate_cont, backup_cont
 from gluon import current
 current.cache = cache
 
@@ -40,16 +40,16 @@ task = {
         VM_TASK_CLONE               :    clone,
         VM_TASK_ATTACH_DISK         :    attach_extra_disk,
         VM_TASK_SAVE_AS_TEMPLATE    :    save_vm_as_template,
-        VM_TASK_DELETE_TEMPLATE     :    delete_template,
-        CONTAINER_TASK_CREATE       :    install_cont,
-        CONTAINER_START             :    start_cont,
-        CONTAINER_STOP              :    stop_cont,
-        CONTAINER_SUSPEND           :    suspend_cont,
-        CONTAINER_RESUME            :    resume_cont,
-        CONTAINER_DELETE            :    delete_cont,
-        CONTAINER_RESTART           :    restart_cont,
-        CONTAINER_RECREATE          :    recreate_cont,
-        CONTAINER_COMMIT            :    backup_cont
+        VM_TASK_DELETE_TEMPLATE     :    delete_template
+#        CONTAINER_TASK_CREATE       :    install_cont,
+#        CONTAINER_START             :    start_cont,
+#        CONTAINER_STOP              :    stop_cont,
+#        CONTAINER_SUSPEND           :    suspend_cont,
+#        CONTAINER_RESUME            :    resume_cont,
+#        CONTAINER_DELETE            :    delete_cont,
+#        CONTAINER_RESTART           :    restart_cont,
+#        CONTAINER_RECREATE          :    recreate_cont,
+#        CONTAINER_COMMIT            :    backup_cont
        }
 
 
