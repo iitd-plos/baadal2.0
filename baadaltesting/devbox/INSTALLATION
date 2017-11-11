@@ -18,4 +18,8 @@ Execute below steps to install devbox on your system.
 
    Request for a VM in user menu.
    VM's default user is "cirros" and password is "cubswin:)"
+   Note: To run the scheduler, use following command:
+
+   cd /home/www-data/web2py
+   su www-data -c "python web2py.py -K baadal:vm_task,baadal:vm_sanity,baadal:host_task,baadal:vm_rrd,baadal:snapshot_task &"
 
