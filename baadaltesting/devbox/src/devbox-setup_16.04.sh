@@ -7,11 +7,6 @@ Normal_pkg_lst=(apache2 aptitude apt-mirror build-essential cgroup-bin debconf-u
 #Changes made by Anmol Panda on 22 Aug 2016 to include new pakages in the installation procedure
 Pip_pkg_list=(docker-py psycopg2-binary dockerpty quik)
 
-#ECHO_PROGRESS="echo -e -n"
-#ECHO_OK="echo -e \"\r\033[K[\e[0;32mOK\e[0m]\t"
-#ECHO_ER="echo -e \"\r\033[K[\e[0;31mER\e[0m]\t"
-#OVS_BRIDGE_EXTERNAL=baadal-br-ext
-
 check_root()
 {
   echo $ECHO_PROGRESS
