@@ -9,11 +9,6 @@ NUMBER_OF_VLANS=5
 
 CONTROLLER_IP=$(ifconfig $OVS_BRIDGE_NAME | grep "inet addr"| cut -d: -f2 | cut -d' ' -f1)
 
-#Normal_pkg_lst=(apache2 aptitude apt-mirror build-essential cgroup-bin debconf-utils dhcp3-server gcc gconf2 inetutils-inetd intltool kvm-ipxe libapache2-mod-gnutls libapache2-mod-wsgi libcurl4-gnutls-dev libdevmapper-dev libglib2.0-dev libgnutls-dev libnl-dev libpciaccess-dev librsvg2-common libvirt-glib-1.0-dev libxml2-dev libyajl-dev netperf nfs-common openssh-server pkg-config python python2.7:python2.5 python-appindicator python-dbus python-dev python-glade2 python-gnome2 python-gtk2 python-gtk-vnc python-libxml2 python-lxml python-matplotlib python-paramiko python-reportlab python-rrdtool python-simplejson python-urlgrabber python-vte qemu-kvm qemu-utils smem sysbench sysstat tar tftpd-hpa unzip uuid-dev vim virt-what virt-viewer wget zip nfs-kernel-server mysql-server)
-
-###Ldap_pkg_lst=(python-ldap perl-modules libpam-krb5 libpam-cracklib php5-auth-pam libnss-ldap krb5-user ldap-utils libldap-2.4-2 nscd ca-certificates ldap-auth-client krb5-config:libkrb5-dev ntpdate)
-
-#Mysql_pkg_lst=(mysql-server-5.7:mysql-server-5.1 libapache2-mod-auth-mysql php5-mysql)
 Mysql_pkg_lst=(mysql-server-5.7:mysql_client)
 
 VM_MAC_LIST=(A2:00:00:6B:B0:EB A2:00:00:FA:35:7E A2:00:00:3E:1A:54 A2:00:00:77:2F:49 A2:00:00:9B:D7:BD)
@@ -375,11 +370,6 @@ echo "Web2py Setup Successful.........................................."
 Enbl_Modules()
 {
 
-
-###	if test $AUTH_TYPE == "ldap"; then
-###		/etc/init.d/nscd restart
-###		ntpdate $LDAP_URL
-###	fi
         apt-get -y purge apache2
         apt-get -y install apache2 --force-yes
 	echo "Enabling Apache Modules.........................................."
