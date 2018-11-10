@@ -1,10 +1,10 @@
 Baadal Testing Devbox
 ===============================================
-This devbox installation script is tested on Ubuntu-16.04-LTS-Server
+This devbox installation script is tested on Ubuntu-16.04-LTS-Server  
 
-Execute below steps to install devbox on your system.
+Execute below steps to install devbox on your system.  
 
-1. update your machine and install some packages
+1. update your machine and install some packages  
    apt-get update  
    apt-get install make  
    apt-get install firefox  
