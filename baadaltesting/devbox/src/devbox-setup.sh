@@ -1,15 +1,10 @@
 #!/bin/bash
 
 source ./devbox.cfg 2>> /dev/null
-Normal_pkg_lst=(apache2 aptitude apt-mirror build-essential cgroup-bin debconf-utils dhcp3-server gcc gconf2 inetutils-inetd intltool kvm-ipxe libapache2-mod-gnutls libapache2-mod-wsgi libcurl4-gnutls-dev libdevmapper-dev libglib2.0-dev libgnutls-dev libnl-dev libpciaccess-dev librsvg2-common libvirt-glib-1.0-dev libxml2-dev libyajl-dev netperf nfs-common openssh-server pkg-config python python2.7:python2.5 python-appindicator python-dbus python-dev python-glade2 python-gnome2 python-gtk2 python-gtk-vnc python-libxml2 python-lxml python-matplotlib python-paramiko python-reportlab python-rrdtool python-simplejson python-urlgrabber python-vte qemu-kvm qemu-utils smem sysbench sysstat tar tftpd-hpa unzip uuid-dev vim virt-what virt-viewer wget zip nfs-kernel-server python-pip libpq-dev)
 
-#Changes made by Anmol Panda on 22 Aug 2016 to include new pakages in the installation procedure
-Pip_pkg_list=(docker-py psycopg2 dockerpty quik)
+Normal_pkg_lst=(apache2 aptitude apt-mirror build-essential cgroup-bin debconf-utils isc-dhcp-server gcc gconf2 inetutils-inetd intltool ipxe-qemu libapache2-mod-gnutls libapache2-mod-wsgi libcurl4-gnutls-dev libdevmapper-dev libglib2.0-dev libgnutls-dev libnl-3-dev libpciaccess-dev librsvg2-common libvirt-glib-1.0-dev libxml2-dev libyajl-dev netperf nfs-common openssh-server pkg-config python python2.7  python-appindicator python-dbus python-dev python-glade2 python-gnome2 python-gtk2 python-gtk-vnc python-libxml2 python-lxml python-matplotlib python-paramiko python-reportlab python-rrdtool python-simplejson python-urlgrabber python-vte qemu-kvm qemu-utils smem sysbench sysstat tar tftpd-hpa unzip uuid-dev vim virt-what virt-viewer wget zip nfs-kernel-server python-pip libpq-dev virt-manager libvirt-bin python-libvirt )
 
-#ECHO_PROGRESS="echo -e -n"
-#ECHO_OK="echo -e \"\r\033[K[\e[0;32mOK\e[0m]\t"
-#ECHO_ER="echo -e \"\r\033[K[\e[0;31mER\e[0m]\t"
-#OVS_BRIDGE_EXTERNAL=baadal-br-ext
+Pip_pkg_list=(docker-py psycopg2-binary dockerpty quik)
 
 check_root()
 {
@@ -280,7 +275,10 @@ run()
     fi
 
   $ECHO_PROGRESS "Checking iptables-persistent"
-  /etc/init.d/iptables-persistent save
+
+  #below command will be used for 16.04
+  netfilter-persistent save
+
   status=$?
   if [[ $status -ne 0 ]]; then
      $ECHO_ER Install iptables-persistent
@@ -289,7 +287,8 @@ run()
     $ECHO_OK iptables-persistent found
   fi
 
-  ovsvsctl_del_br $OVS_BRIDGE_EXTERNAL ;  ovsvsctl_del_br $OVS_BRIDGE_INTERNAL ; dhclient -v eth0
+  OLDINTERFACE=`ip route get 8.8.8.8 | awk '{ print $5; exit }'`
+  ovsvsctl_del_br $OVS_BRIDGE_EXTERNAL ;  ovsvsctl_del_br $OVS_BRIDGE_INTERNAL ; dhclient -v $OLDINTERFACE
 
   ovsvsctl_add_br $OVS_BRIDGE_EXTERNAL
 
@@ -333,7 +332,10 @@ run()
   echo 1 > /proc/sys/net/ipv4/ip_forward
 
   $ECHO_PROGRESS "Saving iptables"
-  /etc/init.d/iptables-persistent save 
+   
+  #ubuntu16.04 command 
+  netfilter-persistent save
+  #/etc/init.d/iptables-persistent save 
   status=$?
 
   if [[ $status -ne 0 ]]; then
@@ -400,43 +402,11 @@ run()
    echo "Instl_Pkgs"
    Instl_Pkgs
    echo "Pkgs Installed"
-   
+
+
    echo "Instl_pip_pkgs"
    Instl_pip_pkgs
    echo "Pip pkgs installed"
-   
-   ##installing libvirt packages
-   cd ../utils
-      tar -xvzf libvirt-1.2.6.tar.gz
-      
-      mv libvirt-1.2.6 /tmp/libvirt-1.2.6
-
-      cd /tmp/libvirt-1.2.6
-         ./configure --prefix=/usr --localstatedir=/var --sysconfdir=/etc --with-esx=yes
-          make
-          make install
-	  killall libvirtd
-          /usr/sbin/libvirtd -d
-          if test $? -ne 0; then
-              echo "Unable to start libvirtd. Check installation and try again"
-              exit $?
-          fi
-          echo "Libvirt Installed"
-          sed -i -e "s@exit 0\$@/usr/sbin/libvirtd -d\nexit 0@" /etc/rc.local
-      cd -
-
-      tar -xvzf libvirt-python-1.2.6.tar.gz 
-      cd libvirt-python-1.2.6
-          /tmp/libvirt-1.2.6/run python setup.py build
-          /tmp/libvirt-1.2.6/run python setup.py install
-      cd -
-
-      tar -xvzf virt-manager-0.10.0.tar.gz -C /root
-      cd /root/virt-manager-0.10.0
-          python setup.py install --prefix=/usr
-      cd -
-
-   cd ../src
 
    virsh net-destroy default
    virsh net-autostart --disable default
