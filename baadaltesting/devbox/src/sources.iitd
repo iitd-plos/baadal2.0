@@ -1,19 +1,15 @@
-deb http://repo.iitd.ernet.in/ubuntu trusty main restricted universe multiverse
-deb-src http://repo.iitd.ernet.in/ubuntu trusty main restricted universe multiverse
+# Binary packages
+# ===============
+deb http://repo.iitd.ernet.in/ubuntu xenial main restricted universe multiverse
+deb http://repo.iitd.ernet.in/ubuntu xenial-updates main restricted universe multiverse
+deb http://repo.iitd.ernet.in/ubuntu xenial-security main restricted universe multiverse
+# deb http://repo.iitd.ernet.in/ubuntu xenial-backports main restricted universe multiverse
+# deb http://repo.iitd.ernet.in/ubuntu xenial-proposed main restricted universe multiverse
 
-deb http://repo.iitd.ernet.in/ubuntu trusty-proposed main restricted universe multiverse
-deb-src http://repo.iitd.ernet.in/ubuntu trusty-proposed main restricted universe multiverse
-
-deb http://repo.iitd.ernet.in/ubuntu trusty-updates main restricted universe multiverse
-deb-src http://repo.iitd.ernet.in/ubuntu trusty-updates main restricted universe multiverse
-
-deb http://repo.iitd.ernet.in/ubuntu trusty-security main restricted universe multiverse
-deb-src http://repo.iitd.ernet.in/ubuntu trusty-security main restricted universe multiverse
-
-deb http://repo.iitd.ernet.in/ubuntu trusty-backports main restricted universe multiverse
-deb-src http://repo.iitd.ernet.in/ubuntu trusty-backports main restricted universe multiverse
-
-deb http://repo.iitd.ernet.in/ubuntupartner trusty partner
-deb-src http://repo.iitd.ernet.in/ubuntupartner trusty partner
-
-
+# Sources
+# =======
+# deb-src http://repo.iitd.ernet.in/ubuntu xenial main restricted universe multiverse
+# deb-src http://repo.iitd.ernet.in/ubuntu xenial-updates main restricted universe multiverse
+# deb-src http://repo.iitd.ernet.in/ubuntu xenial-security main restricted universe multiverse
+# deb-src http://repo.iitd.ernet.in/ubuntu xenial-backports main restricted universe multiverse
+# deb-src http://repo.iitd.ernet.in/ubuntu xenial-proposed main restricted universe multiverse
