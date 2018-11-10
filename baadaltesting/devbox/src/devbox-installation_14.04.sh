@@ -9,7 +9,11 @@ NUMBER_OF_VLANS=5
 
 CONTROLLER_IP=$(ifconfig $OVS_BRIDGE_NAME | grep "inet addr"| cut -d: -f2 | cut -d' ' -f1)
 
-Mysql_pkg_lst=(mysql-server-5.7:mysql_client)
+Normal_pkg_lst=(apache2 aptitude apt-mirror build-essential cgroup-bin debconf-utils dhcp3-server gcc gconf2 inetutils-inetd intltool kvm-ipxe libapache2-mod-gnutls libapache2-mod-wsgi libcurl4-gnutls-dev libdevmapper-dev libglib2.0-dev libgnutls-dev libnl-dev libpciaccess-dev librsvg2-common libvirt-glib-1.0-dev libxml2-dev libyajl-dev netperf nfs-common openssh-server pkg-config python python2.7:python2.5 python-appindicator python-dbus python-dev python-glade2 python-gnome2 python-gtk2 python-gtk-vnc python-libxml2 python-lxml python-matplotlib python-paramiko python-reportlab python-rrdtool python-simplejson python-urlgrabber python-vte qemu-kvm qemu-utils smem sysbench sysstat tar tftpd-hpa unzip uuid-dev vim virt-what virt-viewer wget zip nfs-kernel-server)
+
+###Ldap_pkg_lst=(python-ldap perl-modules libpam-krb5 libpam-cracklib php5-auth-pam libnss-ldap krb5-user ldap-utils libldap-2.4-2 nscd ca-certificates ldap-auth-client krb5-config:libkrb5-dev ntpdate)
+
+Mysql_pkg_lst=(mysql-server-5.5:mysql-server-5.1 libapache2-mod-auth-mysql php5-mysql)
 
 VM_MAC_LIST=(A2:00:00:6B:B0:EB A2:00:00:FA:35:7E A2:00:00:3E:1A:54 A2:00:00:77:2F:49 A2:00:00:9B:D7:BD)
 ###################################################################################################################################
@@ -84,7 +88,29 @@ Chk_installation_config()
 	fi
 	
 
-	
+	###KANIKA
+        ###   if test "$TFTP_DIR" == "" || test "$PXE_SETUP_FILES_PATH" == "" || test "$ISO_LOCATION" == "" || test "$ABSOLUTE_PATH_OF_PARENT_BAADALREPO" == "" || test "$BAADAL_REPO_DIR" == ""; then
+	###	echo "TFTP Setup config missing/incomplete!!!"
+	###	exit 1
+	###fi	
+
+        ###if test ! -f $ISO_LOCATION; then
+        ###        echo "ISO to be mounted for PXE server missing!!!"
+        ###        exit 1
+        ###fi
+
+
+	###if test ! -d $PXE_SETUP_FILES_PATH; then
+	###	echo "PXE Setup Files not Found!!!"
+        ###       exit 1
+        ###fi 
+
+        #if test ! -d $ABSOLUTE_PATH_OF_BAADALREPO; then
+        #       echo "Baadal Repo not Found!!!"
+        #        exit 1
+        #fi 
+
+
         if test ! -d $BAADAL_APP_DIR_PATH; then
                 echo "Baadal App not Found!!!"
                 exit 1
@@ -112,6 +138,19 @@ Chk_installation_config()
         	exit 1
 	fi
 
+	###if test "$INSTALL_LOCAL_UBUNTU_REPO" == "y"; then
+
+	###	if test "$EXTERNAL_REPO_IP" == "" || test "$LOCAL_REPO_SETUP_FILES_PATH" == ""; then
+	###		echo "local ubuntu repo setup config missing!!!"
+	###		exit 1
+	###	fi
+
+	###	if test ! -d $LOCAL_REPO_SETUP_FILES_PATH; then
+	###		echo "Setup Files Required to configure local ubuntu repo not found!!!"
+	###		exit 1
+	###	fi
+
+	###fi
 
 	if test "$WEB2PY_PASSWD" == ""; then
 		echo "Web2py root pasword missing!!!"
@@ -134,8 +173,126 @@ Chk_installation_config()
 }
 
 
-Setup_virshnetwork()
+#Function to populate the list of packages to be installted
+Populate_Pkg_Lst()
+{
+
+	Pkg_lst=${Normal_pkg_lst[@]}
+
+	if [[ $DB_TYPE == "mysql" ]]; then
+
+		Pkg_lst=("${Pkg_lst[@]}" "${Mysql_pkg_lst[@]}")
+	
+	elif [[ $DB_TYPE == "sqlite" ]]; then
+
+		echo "Do nothing as of now"
+	else
+		echo "Invalid Database Type!!!"
+		echo "Please Check Configuration File.........."
+  		echo "EXITING INSTALLATION......................................"
+		exit 1
+
+	fi			
+			
+}
+
+#Function that install all the packages packages
+Instl_Pkgs()
 {	
+#	apt-get update && apt-get -y upgrade
+
+	echo "Updating System............."	
+
+	Pkg_lst=()
+	#Populate_Pkg_Lst
+
+	for pkg_multi_vrsn in ${Mysql_pkg_lst[@]}; do
+
+		pkg_status=0
+		pkg_multi_vrsn=(`echo $pkg_multi_vrsn | tr ":" " "`)
+ 		
+		for pkg in ${pkg_multi_vrsn[@]}; do
+
+			echo "Installing Package: $pkg.................."
+					
+			skip_pkg_installation=0
+					
+		  if [[ "$pkg" =~ "mysql-server" ]]; then
+
+				dpkg-query -S $pkg>/dev/null;
+	  		status=$?;
+
+				if test $status -eq 1;  then 
+
+					echo "mysql-server-5.5 mysql-server/root_password password $MYSQL_ROOT_PASSWD" | debconf-set-selections
+					echo "mysql-server-5.5 mysql-server/root_password_again password $MYSQL_ROOT_PASSWD" | debconf-set-selections
+
+				else 
+				
+					if test $REINSTALL_MYSQL == 'y' -o 'Y' ; then
+
+						sudo apt-get -y remove --purge $pkg
+						sudo apt-get -y autoremove
+						sudo apt-get -y autoclean
+						
+						status=$?
+						
+						if test $status -eq 0 ; then 
+		      
+							echo "$pkg Package Removed Successfully" 
+						
+					 	else
+
+							echo "PACKAGE REMOVAL UNSUCCESSFULL: $pkg !!!"
+							echo "EXITING INSTALLATION......................................"
+							exit 1
+	
+						fi						
+			
+					else
+					
+						skip_pkg_installation=1
+					
+					fi
+				fi
+
+			fi
+				
+			if test $skip_pkg_installation -eq 0; then
+			
+				DEBIAN_FRONTEND=noninteractive apt-get -y install $pkg --force-yes
+
+			fi
+			
+			status=$?
+		
+			if test $status -eq 0 ; then 
+		      
+				echo "$pkg Package Installed Successfully" 
+				break
+						
+		 	else
+
+				echo "PACKAGE INSTALLATION UNSUCCESSFULL: ${pkg_multi_vrsn[@]} !!!"
+				echo "NETWORK CONNECTION ERROR/ REPOSITORY ERROR!!!"
+				echo "EXITING INSTALLATION......................................"
+				exit 1
+
+			fi
+			
+		done
+		# end of FOR loop / package installation from pkg_multi_vrsn	
+
+	done
+	# end of FOR loop / package installation from pkg_lst
+
+        PID=`ps -eaf | grep mysql | grep -v grep | awk '{print $2}'`
+        if [[ "" !=  "$PID" ]]; then
+            echo "killing $PID"
+            kill -9 $PID
+        fi
+        /usr/sbin/mysqld &
+
 
         ovs_net_config="<network>\n<name>ovs-net</name>\n<forward mode='bridge'/>\n<bridge name='baadal-br-int'/>\n<virtualport type='openvswitch'/>\n"
         for ((i=1;i<=$NUMBER_OF_VLANS;i++))
@@ -156,7 +313,10 @@ Setup_virshnetwork()
         echo -e "192.168.0.1:/baadal/data /mnt/datastore nfs rw,auto" >> /etc/fstab
         echo "If you have done all the steps correctly, Congo!!!"
 
-	echo "virsh network set successfully..................................."
+
+        cd ../../../baadalinstallation
+
+	echo "Packages Installed Successfully..................................."
 }
 
 
@@ -370,6 +530,11 @@ echo "Web2py Setup Successful.........................................."
 Enbl_Modules()
 {
 
+
+###	if test $AUTH_TYPE == "ldap"; then
+###		/etc/init.d/nscd restart
+###		ntpdate $LDAP_URL
+###	fi
         apt-get -y purge apache2
         apt-get -y install apache2 --force-yes
 	echo "Enabling Apache Modules.........................................."
@@ -691,101 +856,6 @@ Setup_VM_Dhcp_Entries()
 
 }
 
-Instl_Pkgs()
-{	
-#	apt-get update && apt-get -y upgrade
-
-	echo "Updating System............."	
-
-	Pkg_lst=()
-	#Populate_Pkg_Lst
-
-	for pkg_multi_vrsn in ${Mysql_pkg_lst[@]}; do
-
-		pkg_status=0
-		pkg_multi_vrsn=(`echo $pkg_multi_vrsn | tr ":" " "`)
- 		
-		for pkg in ${pkg_multi_vrsn[@]}; do
-
-			echo "Installing Package: $pkg.................."
-					
-			skip_pkg_installation=0
-					
-		  if [[ "$pkg" =~ "mysql-server" ]]; then
-
-				dpkg-query -S $pkg>/dev/null;
-   	  		        status=$?;
-
-				if test $status -eq 1;  then 
-
-					echo "mysql-server-5.7 mysql-server/root_password password $MYSQL_ROOT_PASSWD" | debconf-set-selections
-					echo "mysql-server-5.7 mysql-server/root_password_again password $MYSQL_ROOT_PASSWD" | debconf-set-selections
-
-				else 
-				
-					if test $REINSTALL_MYSQL == 'y' -o 'Y' ; then
-
-						sudo apt-get -y remove --purge $pkg
-						sudo apt-get -y autoremove
-						sudo apt-get -y autoclean
-						
-						status=$?
-						
-						if test $status -eq 0 ; then 
-		      
-							echo "$pkg Package Removed Successfully" 
-						
-					 	else
-
-							echo "PACKAGE REMOVAL UNSUCCESSFULL: $pkg !!!"
-							echo "EXITING INSTALLATION......................................"
-							exit 1
-	
-						fi						
-					else
-						skip_pkg_installation=1
-					fi
-				fi
-
-			fi
-				
-			if test $skip_pkg_installation -eq 0; then
-			
-				DEBIAN_FRONTEND=noninteractive apt-get -y install $pkg --force-yes
-
-			fi
-			
-			status=$?
-		
-			if test $status -eq 0 ; then 
-		      
-				echo "$pkg Package Installed Successfully" 
-				break
-						
-		 	else
-
-				echo "PACKAGE INSTALLATION UNSUCCESSFULL: ${pkg_multi_vrsn[@]} !!!"
-				echo "NETWORK CONNECTION ERROR/ REPOSITORY ERROR!!!"
-				echo "EXITING INSTALLATION......................................"
-				exit 1
-
-			fi
-			
-		done
-		# end of FOR loop / package installation from pkg_multi_vrsn	
-
-	done
-	# end of FOR loop / package installation from pkg_lst
-
-        #PID=`ps -eaf | grep mysql | grep -v grep | awk '{print $2}'`
-        #if [[ "" !=  "$PID" ]]; then
-        #    echo "killing $PID"
-        #    kill -9 $PID
-        #fi
-        #/usr/sbin/mysqld &
-
-}
-
 exec > >(tee /var/log/installation.log)
 exec 2>&1
 
@@ -800,7 +870,6 @@ Chk_installation_config
 Chk_Gateway
 filer_setup
 Instl_Pkgs
-Setup_virshnetwork
 Setup_Web2py
 Enbl_Modules
 Create_SSL_Certi
