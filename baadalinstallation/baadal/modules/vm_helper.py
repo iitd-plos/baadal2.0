@@ -325,7 +325,6 @@ def _get_install_command(vm_details, vm_image_location, vm_properties):
                      --network network='+current.LIBVIRT_NETWORK + model + ',mac=' + vm_properties['mac_addr'] + ' \
                      --graphics vnc,port=' + vm_properties['vnc_port'] + ',listen=0.0.0.0,password=duolc \
                      --noautoconsole \
-                     --description \
                      --autostart \
                      --force' 
 
