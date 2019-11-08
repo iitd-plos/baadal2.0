@@ -18,8 +18,8 @@ This devbox installation script is tested on Ubuntu-16.04-LTS-Server
    Request for a VM in user menu.  
    VM's default user is "cirros" and password is "cubswin:)"  
 
-4. Start background task using following script
-   baadal2.0/baadalinstallation/web2py_start.sh
+4. Start background task by executing following script
+   - baadal2.0/baadalinstallation/web2py_start.sh
 
    
 ### How to add one devbox as host of other devbox machine
