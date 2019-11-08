@@ -86,17 +86,17 @@ def _set_portgroup_in_vm(domain_name, portgroup, host_ip, vlan_tag):
     source_network_string=etree.tostring(source_network_element) 
     logger.debug("Source network is " + source_network_string)
 
-    if source_network_string.find(" network=") != -1:
-        logger.debug("Source is set to network adding portgroup to the source tag ")
-        source_network_element.set('portgroup', portgroup)  
-        logger.debug("Changed source network is " + etree.tostring(source_network_element)) 
-    elif source_network_string.find(" bridge=") != -1:
+    if source_network_string.find(" bridge=") != -1:
         logger.debug("Source is set to bridge adding <vlan><tag_id> to the interface tag ")
         root_new  = xml.find('.//interface')  
         root_new_vlan= etree.SubElement(root_new, 'vlan') 
         root_new_tag=  etree.SubElement(root_new_vlan, 'tag')
         root_new_tag.set('id',vlan_tag) 
         logger.debug("After append root_new_vlan is " + etree.tostring(root_new_vlan))  
+    elif source_network_string.find(" network=") != -1:
+        logger.debug("Source is set to network adding portgroup to the source tag ")
+        source_network_element.set('portgroup', portgroup)  
+        logger.debug("Changed source network is " + etree.tostring(source_network_element)) 
     else:
         logger.debug("Neither VM nor vlan tagId is added in the xml" )  
 
