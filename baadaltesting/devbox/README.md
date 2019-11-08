@@ -20,6 +20,7 @@ This devbox installation script is tested on Ubuntu-16.04-LTS-Server
 
 4. Start background task using following script
    baadal2.0/baadalinstallation/web2py_start.sh
+
    
 ### How to add one devbox as host of other devbox machine
 **Note**
@@ -44,3 +45,16 @@ service isc-dhcp-server restart
 10.17.6.41:/baadal/data /mnt/datastore nfs rw,auto
 ```
 3. Use **mount -a** to mount the datastore on host machines
+
+4. Passwordless ssh should be established between controller and host machines; and also between host machines for migration. Execute following command on Controller. HOST_IP should be replaced with actual IP
+```bash
+ssh-copy-id root@HOST_IP
+su - www-data
+ssh-copy-id root@HOST_IP
+```
+Execute following command on Host machines for each host including controller.
+```bash
+ssh-copy-id root@HOST_IP
+```
+5. Login to baadal web interface. Make entry of private ip and mac address of host machines using **ADMIN MENU > Configure System > Configure Private IP Pool**
+6. Open **ADMIN MENU > Configure System > Configure Host**. Enter the host machine IP, and Click **Get Details** . Host Configuration details should get populated. Host can then be added to the system.
