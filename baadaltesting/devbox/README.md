@@ -24,10 +24,10 @@ This devbox installation script is tested on Ubuntu-16.04-LTS-Server
    
 ### How to add one devbox as host of other devbox machine
 **Note**
-- Controller of only one devbox should be used. Other devbox machines should be used only as host machines to avoid data conflict. 
+- Controller of only one devbox should be used. Other devbox machines should be used only as host machines to avoid any data conflict. 
 - VMs in devbox are created in 192.168.0.0/16 private subnet. So, VMs running on one devbox cannot connect to VM running in another devbox.
 - Controller devbox machine will be referred to as controller & all other devbox machines will be referred to as hosts henceforth.
-- Each VM will use the DHCP Server running on its own devbox server. So, if more private IPs are added to the controller; DHCP configuration file(/etc/dhcp/dhcpd.conf) on controller needs to be copied to other host machines; and DHCP server should be restarted using following command.
+- Each VM will use the DHCP Server running on its own devbox server. So, if private IPs(other than host IPs) are added to the controller; DHCP configuration file(/etc/dhcp/dhcpd.conf) on controller needs to be copied to other host machines; and DHCP server should be restarted using following command.
 ```bash
 service isc-dhcp-server restart
 ```
@@ -35,7 +35,7 @@ service isc-dhcp-server restart
 
 **Steps**
 
-1. To mount Controller datastore on other machines, edit /etc/exports to give permission to host IPs. Sample entry will be as follows:
+1. There should be common datastores on all machines to facilitate VM migration. To mount Controller datastore on other machines, edit /etc/exports to give permission to host IPs. Sample edited entry will be as follows:
 ```bash
 /baadal/data 10.17.0.0/16(rw,sync,no_root_squash,no_all_squash,subtree_check)
 ```
@@ -54,7 +54,7 @@ ssh-copy-id root@HOST_IP
 ```
 Execute following command on Host machines for each host including controller.
 ```bash
-ssh-copy-id root@HOST_IP
+ssh-copy-id root@CONTROLLER_IP
 ```
-5. Login to baadal web interface. Make entry of private ip and mac address of host machines using **ADMIN MENU > Configure System > Configure Private IP Pool**
-6. Open **ADMIN MENU > Configure System > Configure Host**. Enter the host machine IP, and Click **Get Details** . Host Configuration details should get populated. Host can then be added to the system.
+5. Login to baadal web interface. Goto **ADMIN MENU > Configure System > Configure Private IP Pool**. Add entry of private ip and mac address of host machines in vlan0.
+6. Goto **ADMIN MENU > Configure System > Configure Host**. Enter the host machine IP, and Click **Get Details** . Host Configuration details should get populated. Host can then be added to the system.
