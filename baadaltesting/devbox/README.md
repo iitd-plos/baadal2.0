@@ -35,18 +35,18 @@ service isc-dhcp-server restart
 
 **Steps**
 
-1. There should be common datastores on all machines to facilitate VM migration. To mount Controller datastore on other machines, edit /etc/exports to give permission to host IPs. Sample edited entry will be as follows:
+1. There should be common datastores on all machines to facilitate VM migration. To mount Controller datastore on other machines, edit **/etc/exports** to give permission to host IPs. Sample edited entry will be as follows:
 ```bash
 /baadal/data 10.17.0.0/16(rw,sync,no_root_squash,no_all_squash,subtree_check)
 ```
-2. Edit /etc/fstab on host machines to mount file from controller datastore. Sample edited entry will be as follows:
+2. Edit **/etc/fstab** on host machines to mount file from controller datastore. Sample edited entry will be as follows:
 
 ```bash
 10.17.6.41:/baadal/data /mnt/datastore nfs rw,auto
 ```
 3. Use **mount -a** to mount the datastore on host machines
 
-4. Passwordless ssh should be established between controller and host machines; and also between host machines for migration. Execute following command on Controller. HOST_IP should be replaced with actual IP
+4. Passwordless ssh connection should be configured between controller and host machines; and also between host machines for migration. Execute following command on Controller. HOST_IP should be replaced with actual IP
 ```bash
 ssh-copy-id root@HOST_IP
 su - www-data
@@ -56,5 +56,7 @@ Execute following command on Host machines for each host including controller.
 ```bash
 ssh-copy-id root@CONTROLLER_IP
 ```
+
 5. Login to baadal web interface. Goto **ADMIN MENU > Configure System > Configure Private IP Pool**. Add entry of private ip and mac address of host machines in vlan0.
+
 6. Goto **ADMIN MENU > Configure System > Configure Host**. Enter the host machine IP, and Click **Get Details** . Host Configuration details should get populated. Host can then be added to the system.
