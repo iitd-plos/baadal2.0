@@ -2,7 +2,7 @@ Baadal Testing Devbox
 ===============================================
 This devbox installation script is tested on Ubuntu-16.04-LTS-Server  
 
-Execute below steps to install devbox on your system.  
+### Execute below steps to install devbox on your system.  
 
 1. update your machine and install some packages  
    apt-get update  
@@ -21,12 +21,26 @@ Execute below steps to install devbox on your system.
 4. Start background task using following script
    baadal2.0/baadalinstallation/web2py_start.sh
    
-Steps to add one devbox as host of other devbox
-===============================================
-Note:
+### How to add one devbox as host of other devbox machine
+**Note**
 - Controller of only one devbox should be used. Other devbox machines should be used only as host machines to avoid data conflict. 
-- VMs in devbox are created in 192.168.0.0/16 subnet. So, VMs running in one subnet cannot connect to VM running in another devbox.
-- Each VM will use the DHCP Server running on its own devbox server. So, if more private IPs are added to the controller; DHCP configuration file(/etc/dhcp/dhcpd.conf) needs to be copied to other devbox machines; and DHCP server should be restarted.
-  service isc-dhcp-server restart
+- VMs in devbox are created in 192.168.0.0/16 private subnet. So, VMs running on one devbox cannot connect to VM running in another devbox.
+- Controller devbox machine will be referred to as controller & all other devbox machines will be referred to as hosts henceforth.
+- Each VM will use the DHCP Server running on its own devbox server. So, if more private IPs are added to the controller; DHCP configuration file(/etc/dhcp/dhcpd.conf) on controller needs to be copied to other host machines; and DHCP server should be restarted using following command.
+```bash
+service isc-dhcp-server restart
+```
 
 
+**Steps**
+
+1. To mount Controller datastore on other machines, edit /etc/exports to give permission to host IPs. Sample entry will be as follows:
+```bash
+/baadal/data 10.17.0.0/16(rw,sync,no_root_squash,no_all_squash,subtree_check)
+```
+2. Edit /etc/fstab on host machines to mount file from controller datastore. Sample edited entry will be as follows:
+
+```bash
+10.17.6.41:/baadal/data /mnt/datastore nfs rw,auto
+```
+3. Use **mount -a** to mount the datastore on host machines
