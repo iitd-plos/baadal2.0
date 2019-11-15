@@ -20,6 +20,9 @@ This devbox installation script is tested on Ubuntu-16.04-LTS-Server
 
 4. Start background task by executing following script
    - baadal2.0/baadalinstallation/web2py_start.sh
+ 
+5. Default password for Web2py Web Framework is web2py
+   In case of any error, you would be required to enter the password to check the error traceback.
 
    
 ### How to add one devbox as host of other devbox machine
