@@ -2,27 +2,31 @@ Baadal Testing Devbox
 ===============================================
 This devbox installation script is tested on Ubuntu-16.04-LTS-Server  
 
-### Execute below steps to install devbox on your system.  
+### Steps to install devbox on your system.  
+1. Update the local package index and install some required packages  
+   ```bash
+   apt update  
+   apt install make firefox
+   ```
 
-1. update your machine and install some packages  
-   apt-get update  
-   apt-get install make  
-   apt-get install firefox  
+2. Excute following command to start devbox installation
+   ```bash
+   make devbox
+   ```
 
-2. make devbox
-
-3. open firefox and open baadal GUI, http://localhost/baadal  
+3. Start background task by executing following script
+   ```bash
+   baadal2.0/baadalinstallation/web2py_start.sh
+   ```
+4. Start firefox and open baadal web interface, http://localhost/baadal  
    user:- admin  
    passwd:- baadal  
 
-   Request for a VM in user menu.  
-   VM's default user is "cirros" and password is "cubswin:)"  
+   * Goto **USER MENU > Request VM** to request for a VM.
+   * Goto **ADMIN MENU > All Pending Requests** to approve the request.
+   * VM's default user is "cirros" and password is "cubswin:)"  
+   * Default password for Web2py Web Framework is **web2py**<br/>In case of exception, you would be required to enter the password to check the error traceback.
 
-4. Start background task by executing following script
-   - baadal2.0/baadalinstallation/web2py_start.sh
- 
-5. Default password for Web2py Web Framework is web2py
-   In case of any error, you would be required to enter the password to check the error traceback.
 
    
 ### How to add one devbox as host of other devbox machine
